@@ -5,15 +5,15 @@
 class School(object):
     """学校基类"""
 
-    def __init__(self, name, location):
+    def __init__(self, schoolname, location):
         """
         param name: 学校名称
         param location: 学校所在城市
         """
-        self.name = name
+        self.schoolname = schoolname
         self.location = location
 
-    def create_classes(self, Course, Teacher):
+    def create_classes(self, Classes, Course, Teacher):
         """创建班级，没有具体实现，要求子类（学校管理员）必须实现此方法"""
         pass
 
