@@ -1,5 +1,6 @@
 #!  /usr/bin/env python
 # -*- coding: utf-8 -*-
+from setting import COURSES
 
 
 class Course(object):
@@ -23,14 +24,9 @@ class Course(object):
 
     @cycle.setter
     def cycle(self, weeks):
-        price_rangenge = {
-            "Python": {"max": 52, "min": 24},
-            "Linux": {"max": 36, "min": 12},
-            "Go": {"max": 52, "min": 24}
-        }
-        if weeks < price_rangenge[self.name]["min"]:
+        if weeks < COURSES[self.name]["cycle"]["min"]:
             print("这么短的时间爱因斯坦也学不会啊")
-        elif weeks > price_rangenge[self.name]["max"]:
+        elif weeks > COURSES[self.name]["cycle"]["max"]:
             print("学习周期太长了，招不到学生学校今年的开支你包了！")
         else:
             self.__cycle = weeks
@@ -41,14 +37,9 @@ class Course(object):
 
     @price.setter
     def price(self, amount):
-        price_range = {
-            "Python": {"max": 24000, "min": 6500},
-            "Linux": {"max": 18000, "min": 4000},
-            "Go": {"max": 26000, "min": 5500}
-        }
-        if amount < price_range[self.name]["min"]:
+        if amount < COURSES[self.name]["price"]["min"]:
             print("太便宜了，没利润喝西北风去啊！")
-        elif amount > price_range[self.name]["max"]:
+        elif amount > COURSES[self.name]["price"]["max"]:
             print("太贵了，招不到学生学校今年的开支你包了！")
         else:
             self.__price = amount

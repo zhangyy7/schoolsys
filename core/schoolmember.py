@@ -1,7 +1,8 @@
 #! /usr/bin/env python
 # -*-coding: utf-8 -*-
-from core.school import School
-from core.course import Course
+from school import School
+from course import Course
+from setting import COURSES
 
 
 class SchoolMember(object):
@@ -44,17 +45,12 @@ class Teacher(SchoolMember):
         """判断薪水范围"""
 
         amount = int(amount)
-        salary_range = {
-            "Python": {"max": 50000, "min": 18000},
-            "Linux": {"max": 60000, "min": 15000},
-            "Go": {"max": 65000, "min": 20000}
-        }
-        if amount > salary_range[self.course.name]["max"]:
+        if amount > COURSES[self.course.name]["salary"]["max"]:
             print("%s 讲师的薪水上限为%d,你咋不上天呢！" %
-                  (self.course.name, salary_range[self.course.name]["max"]))
-        elif amount < salary_range[self.course.name]["min"]:
+                  (self.course.name, COURSES[self.course.name]["salary"]["max"]))
+        elif amount < COURSES[self.course.name]["salary"]["min"]:
             print("%s 讲师的薪水最少也得%d,你打发要饭的呢！" %
-                  (self.course.name, salary_range[self.course.name]["min"]))
+                  (self.course.name, COURSES[self.course.name]["salary"]["min"]))
         else:
             self.__salary = amount
 
@@ -85,7 +81,7 @@ class Student(SchoolMember):
         else:
             print("请选择正确的学校和课程")
 
-    def pay_tuition(self):
-        """交学费方法"""
-        self.total_tuition += self.course.price
-        self.
+    # def pay_tuition(self):
+    #     """交学费方法"""
+    #     self.total_tuition += self.course.price
+    #     self.
