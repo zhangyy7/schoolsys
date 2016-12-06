@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 # -*-coding: utf-8 -*-
+from core.school import School
+from core.course import Course
 
 
 class SchoolMember(object):
@@ -11,7 +13,6 @@ class SchoolMember(object):
         self.name = name
         self.age = age
         self.sex = sex
-        self.enroll()
 
     def enroll(self):
         SchoolMember.member += 1
@@ -29,10 +30,15 @@ class SchoolMember(object):
 class Teacher(SchoolMember):
     """讲师类，学校成员的一个子类"""
 
-    def __init__(self, name, age, sex, course):
-        super(Teacher, self).__init__(name, age, sex)
-        self.course = course
-        self.__salary = 0  # 构造对象时默认为0，后续通过setter方法进行赋值
+    def enroll(self, course, amount):
+        super(Teacher, self).enroll()
+        self.__salary = 0
+        if isinstance(course, Course):
+            self.course = course
+        else:
+            print("只能传入课程")
+            return "错误码"
+        self.salary = amount  # 构造对象时默认为0，后续通过setter方法进行赋值
 
     def __set_salary(self, amount):
         """判断薪水范围"""
@@ -63,3 +69,23 @@ class Teacher(SchoolMember):
         在调用的时候形式上却和普通赋值并无二致，好评！
         """
         self.__set_salary(amount)
+
+
+class Student(SchoolMember):
+    """学生类，继承自学校成员类"""
+
+    def enroll(self, school, course):
+        super(Student, self).enroll()
+        if isinstance(school, School) and isinstance(course, Course):
+            self.school = school
+            self.courses = {}
+            self.courses[course] = {}
+            self.courses[course]["ispaied"] = False
+
+        else:
+            print("请选择正确的学校和课程")
+
+    def pay_tuition(self):
+        """交学费方法"""
+        self.total_tuition += self.course.price
+        self.

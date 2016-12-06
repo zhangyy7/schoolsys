@@ -11,7 +11,7 @@ def main():
     python.price = 15000
 
     t1 = Teacher('Alex', 28, 'M', python)
-    t1.salary = 50000
+    t1.salary = 70000
     print(t1)
 
 main()
