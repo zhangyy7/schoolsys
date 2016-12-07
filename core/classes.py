@@ -1,7 +1,6 @@
 #!  /usr/bin/env python
 # -*- coding: utf-8 -*-
-from core.course import Course
-from core.schoolmember import Teacher
+from core.schoolmember import Course, Teacher
 
 
 class Classes(object):

@@ -1,8 +1,8 @@
 #! /usr/bin/env pytohn
 # -*-coding: utf-8 -*-
-from course import Course
-from schoolmember import Teacher
-from classes import Classes
+from core.course import Course
+from core.schoolmember import Teacher
+from core.classes import Classes
 
 
 class School(object):

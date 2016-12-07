@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*-coding: utf-8 -*-
-from school import School
-from course import Course
-from setting import COURSES
+from core.school import School
+from core.course import Course
+from core.setting import COURSES
 
 
 class SchoolMember(object):
