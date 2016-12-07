@@ -20,7 +20,8 @@ COURSES = {
         "salary": {
             "min": 18000,
             "max": 50000
-        }
+        },
+        "location": ["beijing"]
     },
     "Linux": {
         "cycle": {
@@ -34,7 +35,8 @@ COURSES = {
         "salary": {
             "min": 15000,
             "max": 60000
-        }
+        },
+        "location": ["beijing"]
     },
     "Golang": {
         "cycle": {
@@ -48,6 +50,7 @@ COURSES = {
         "salary": {
             "min": 20000,
             "max": 65000
-        }
+        },
+        "location": ["shanghai"]
     }
 }

@@ -1,6 +1,6 @@
-#!  /usr/bin/env python
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
-from core.schoolmember import Course, Teacher
+from core import schoolmember as csm
 
 
 class Classes(object):
@@ -21,7 +21,7 @@ class Classes(object):
 
     @course.setter
     def course(self, course):
-        if isinstance(course, Course):
+        if isinstance(course, csm.Course):
             self.__course = course
         else:
             print("course必须是Course的实例！")
@@ -33,7 +33,7 @@ class Classes(object):
 
     @teacher.setter
     def teacher(self, teacher):
-        if isinstance(teacher, Teacher) and teacher.course == self.course:
+        if isinstance(teacher, csm.Teacher) and teacher.course == self.course:
             self.__teacher = teacher
         else:
             print("teacher must is a instance of a %s Teacher" %
