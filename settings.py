@@ -54,3 +54,5 @@ COURSES = {
         "location": ["shanghai"]
     }
 }
+
+CLASSES_MAX_STUDENTS = 80

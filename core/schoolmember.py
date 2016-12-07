@@ -16,20 +16,25 @@ class School(object):
         self.location = location
 
     def create_classes(self, course, teacher):
-        """创建班级，没有具体实现，要求子类（学校管理员）必须实现此方法"""
-        clas_obj = classes.Classes()
+        """创建班级"""
+        clas_obj = classes.Classes(self)
         clas_obj.course = course
         clas_obj.teacher = teacher
+        return clas_obj
 
     def create_course(self, course_name, cycle, price):
-        """创建课程，没有具体实现，要求子类（学校管理员）必须实现此方法"""
+        """创建课程"""
         course_obj = Course(self, course_name)
         course_obj.cycle = cycle
         course_obj.price = price
         return course_obj
 
-    def create_teacher(self, name, age, sex, school, course, salary):
-        """创建讲师，没有具体实现，要求子类（学校管理员）必须实现此方法"""
+    def create_teacher(self, name, age, sex, course, salary):
+        """创建讲师"""
+        teacher = Teacher(name, age, sex, self)
+        teacher.course = course
+        teacher.salary = salary
+        return teacher
 
 
 class Course(object):
@@ -37,7 +42,8 @@ class Course(object):
 
     def __init__(self, creator, name):
         # print(isinstance(creator, School))
-        if isinstance(creator, School) and creator.location in COURSES[name]["location"]:
+        if isinstance(creator, School) and\
+           creator.location in COURSES[name]["location"]:
             self.name = name
             self.__cycle = 0
             self.__price = 0
@@ -50,6 +56,9 @@ class Course(object):
         for k, v in self.__dict__.items():
             info += "%s: %s\n" % (k, v)
         return "=====info=====\n%s=====end=====" % info
+
+    def __eq__(self, other):
+        return self.name == other.name
 
     @property
     def cycle(self):
@@ -104,6 +113,13 @@ class SchoolMember(object):
 class Teacher(SchoolMember):
     """讲师类，学校成员的一个子类"""
 
+    def __init__(self, name, age, sex, creator):
+        super(Teacher, self).__init__(name, age, sex)
+        if isinstance(creator, School):
+            self.school = creator
+        else:
+            raise TypeError('creator must be a instance of School')
+
     def enroll(self, course, amount):
         super(Teacher, self).enroll()
         self.__salary = 0  # 构造对象时默认为0，后续通过setter方法进行赋值
@@ -120,10 +136,12 @@ class Teacher(SchoolMember):
         amount = int(amount)
         if amount > COURSES[self.course.name]["salary"]["max"]:
             print("%s 讲师的薪水上限为%d,你咋不上天呢！" %
-                  (self.course.name, COURSES[self.course.name]["salary"]["max"]))
+                  (self.course.name,
+                   COURSES[self.course.name]["salary"]["max"]))
         elif amount < COURSES[self.course.name]["salary"]["min"]:
             print("%s 讲师的薪水最少也得%d,你打发要饭的呢！" %
-                  (self.course.name, COURSES[self.course.name]["salary"]["min"]))
+                  (self.course.name,
+                   COURSES[self.course.name]["salary"]["min"]))
         else:
             self.__salary = amount
 
@@ -144,6 +162,7 @@ class Student(SchoolMember):
     """学生类，继承自学校成员类"""
 
     def enroll(self, school, course):
+        """注册方法"""
         super(Student, self).enroll()
         if isinstance(school, School) and isinstance(course, Course):
             self.school = school
