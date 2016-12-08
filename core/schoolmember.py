@@ -53,12 +53,12 @@ class Course(object):
         else:
             raise NameError("不能实例化我")
 
-    def __str__(self):
-        """返回实例的所有属性"""
-        info = ""
-        for k, v in self.__dict__.items():
-            info += "%s: %s\n" % (k, v)
-        return "=====info=====\n%s=====end=====" % info
+    # def __str__(self):
+    #     """返回实例的所有属性"""
+    #     info = ""
+    #     for k, v in self.__dict__.items():
+    #         info += "%s: %s\n" % (k, v)
+    #     return "=====info=====\n%s=====end=====" % info
 
     def __eq__(self, other):
         return self.name == other.name
@@ -106,14 +106,14 @@ class SchoolMember(object):
     def enroll(self):
         SchoolMember.member += 1
 
-    def __str__(self):
-        """返回实例的所有属性"""
-        info = ""
-        for k, v in self.__dict__.items():
-            info += "%s: %s\n" % (k, v)
-        return "=====info=====\n%s=====end=====" % info
+    # def __str__(self):
+    #     """返回实例的所有属性"""
+    #     info = ""
+    #     for k, v in self.__dict__.items():
+    #         info += "%s: %s\n" % (k, v)
+    #     return "=====info=====\n%s=====end=====" % info
 
-    __repr__ = __str__
+    # __repr__ = __str__
 
 
 class Teacher(SchoolMember):
@@ -180,6 +180,14 @@ class Teacher(SchoolMember):
         for student in students:
             if student.course == self.course:
                 self.classes.add_student(student, self)
+                student.classes = self.classes
+
+    def remove_students(self, students):
+        """移除自己班级里的学员"""
+        for student in students:
+            if student.classes == self.classes:
+                self.classes.remove_student(student, self)
+                del student.classes
 
 
 class Student(SchoolMember):
@@ -191,6 +199,7 @@ class Student(SchoolMember):
         self.__course = 0
         self.__ispaied = 0
         self.__tuition = 0
+        self.__classes = 0
 
     @property
     def school(self):
@@ -239,3 +248,15 @@ class Student(SchoolMember):
         """交学费方法"""
         self.tuition = self.course.price
         self.ispaied = 1
+
+    @property
+    def classes(self):
+        return self.__classes
+
+    @classes.setter
+    def classes(self, classes_obj):
+        assert isinstance(classes_obj, classes.Classes)
+        self.__classes = classes_obj
+
+    def __delattr__(self, classes_obj):
+        self.__classes = 0

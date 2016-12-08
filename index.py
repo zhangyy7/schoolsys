@@ -19,7 +19,11 @@ def main():
     students = []
     students.append(s1)
     t_alex.add_students(students)
-
+    print(s1.classes)
+    print(classes1.students)
+    t_alex.remove_students(students)
+    print(s1.classes)
+    print(classes1.students)
 
 # print(__file__)
 main()

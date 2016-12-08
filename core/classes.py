@@ -49,11 +49,6 @@ class Classes(object):
 
     @teacher.setter
     def teacher(self, teacher):
-        # print("teacher.course", teacher.course)
-        # print("self.course", self.course)
-        # scourse = self.course.name
-        # tcourse = teacher.course.name
-        # print(self.__dict__)
         if isinstance(teacher, csm.Teacher) and self.course == teacher.course:
             self.__teacher = teacher
         else:
