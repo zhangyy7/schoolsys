@@ -13,14 +13,12 @@ def main():
     linux = school_beijing.create_course('Linux', 24, 8000)
     t_alex = school_beijing.create_teacher('alex', 28, 'M', python, 50000)
     classes1 = school_beijing.create_classes(python, t_alex)
-    # t_alex.
-    print(school_beijing.__dict__)
-    print(school_shanghai.__dict__)
-    print(golang.__dict__)
-    print(python.__dict__)
-    print(linux.__dict__)
-    print(t_alex.__dict__)
-    print(classes1.__dict__)
+    t_alex.classes = classes1
+    s1 = ism.Student('kandaoge', 18, 'M')
+    s1.enroll(school_beijing, python)
+    students = []
+    students.append(s1)
+    t_alex.add_students(students)
 
 
 # print(__file__)

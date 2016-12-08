@@ -15,11 +15,14 @@ class School(object):
         self.schoolname = schoolname
         self.location = location
 
-    def create_classes(self, course, teacher):
+    def create_classes(self, course_obj, teacher_obj):
         """创建班级"""
+        # print(course_obj)
         clas_obj = classes.Classes(self)
-        clas_obj.course = course
-        clas_obj.teacher = teacher
+        # print(clas_obj)
+        clas_obj.course = course_obj
+        clas_obj.teacher = teacher_obj
+        # print("create_classes:clas_obj.course:", clas_obj.course)
         return clas_obj
 
     def create_course(self, course_name, cycle, price):
@@ -59,6 +62,9 @@ class Course(object):
 
     def __eq__(self, other):
         return self.name == other.name
+
+    def __hash__(self):
+        return hash(self)
 
     @property
     def cycle(self):
@@ -117,6 +123,7 @@ class Teacher(SchoolMember):
         super(Teacher, self).__init__(name, age, sex)
         if isinstance(creator, School):
             self.school = creator
+            self.classes = 0
         else:
             raise TypeError('creator must be a instance of School')
 
@@ -157,23 +164,78 @@ class Teacher(SchoolMember):
         """
         self.__set_salary(amount)
 
+    def bind_classes(self, classes_obj):
+        """绑定班级"""
+        if isinstance(classes_obj, classes.Classes):
+            if self.course == classes_obj.course and not classes_obj.teacher:
+                self.classes = classes_obj
+            else:
+                raise KeyError('该班级已经有老师了')
+        else:
+            raise TypeError('只能绑定班级实例')
+
+    def add_students(self, students):
+        """把学生加入自己的班级，学生报名的语言必须与自己的班级一致"""
+        # print(self.classes)
+        for student in students:
+            if student.course == self.course:
+                self.classes.add_student(student, self)
+
 
 class Student(SchoolMember):
     """学生类，继承自学校成员类"""
 
+    def __init__(self, name, age, sex):
+        super(Student, self).__init__(name, age, sex)
+        self.__school = 0
+        self.__course = 0
+        self.__ispaied = 0
+        self.__tuition = 0
+
+    @property
+    def school(self):
+        return self.__school
+
+    @school.setter
+    def school(self, school_obj):
+        assert isinstance(school_obj, School)
+        self.__school = school_obj
+
+    @property
+    def course(self):
+        return self.__course
+
+    @course.setter
+    def course(self, course_obj):
+        assert isinstance(course_obj, Course)
+        self.__course = course_obj
+
+    @property
+    def ispaied(self):
+        return self.__ispaied
+
+    @ispaied.setter
+    def ispaied(self, value):
+        assert value in ["0", "1"]
+        self.__ispaied = int(value)
+
+    @property
+    def tuition(self):
+        return self.__tuition
+
+    @tuition.setter
+    def tuition(self, amount):
+        assert amount == self.course.price
+        self.__tuition = amount
+
     def enroll(self, school, course):
         """注册方法"""
         super(Student, self).enroll()
-        if isinstance(school, School) and isinstance(course, Course):
-            self.school = school
-            self.courses = {}
-            self.courses[course] = {}
-            self.courses[course]["ispaied"] = False
+        assert isinstance(school, School), isinstance(course, Course)
+        self.school = school
+        self.course = course
 
-        else:
-            print("请选择正确的学校和课程")
-
-    # def pay_tuition(self):
-    #     """交学费方法"""
-    #     self.total_tuition += self.course.price
-    #     self.
+    def pay_tuition(self):
+        """交学费方法"""
+        self.tuition = self.course.price
+        self.ispaied = 1

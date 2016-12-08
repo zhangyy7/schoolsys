@@ -16,6 +16,7 @@ class Classes(object):
         __students 为学员列表，列表的每个元素都必须是学生实例
         __max_students 为班级可容纳的最大学生数量，默认值在settings里设置
         """
+        # print("classes.__init__", isinstance(school_obj, csm.School))
         if isinstance(school_obj, csm.School):
             self.__school = school_obj
             self.__course = 0
@@ -31,16 +32,16 @@ class Classes(object):
         return self.__school
 
     @property
-    def course(self, course):
+    def course(self):
         return self.__course
 
     @course.setter
     def course(self, course):
         if isinstance(course, csm.Course):
             self.__course = course
+            # print(self.__course)
         else:
-            print("course必须是Course的实例！")
-            return "错误码"
+            raise ValueError('course必须是Course的实例！')
 
     @property
     def teacher(self):
@@ -48,7 +49,12 @@ class Classes(object):
 
     @teacher.setter
     def teacher(self, teacher):
-        if isinstance(teacher, csm.Teacher) and teacher.course == self.course:
+        # print("teacher.course", teacher.course)
+        # print("self.course", self.course)
+        # scourse = self.course.name
+        # tcourse = teacher.course.name
+        # print(self.__dict__)
+        if isinstance(teacher, csm.Teacher) and self.course == teacher.course:
             self.__teacher = teacher
         else:
             print("teacher must is a instance of a %s Teacher" %
