@@ -59,18 +59,23 @@ CLASSES_MAX_STUDENTS = 80
 
 # 定义三种日志输出格式 开始
 
-standard_format = '[%(asctime)s][%(threadName)s:%(thread)d][task_id:%(name)s][%(filename)s:%(lineno)d]' \
-                  '[%(levelname)s][%(message)s]'
+standard_format = '[%(asctime)s][%(threadName)s:%(thread)d]\
+                   [task_id:%(name)s][%(filename)s:%(lineno)d]\
+                   [%(levelname)s][%(message)s]'.replace(' ', '')
 
-simple_format = '[%(levelname)s][%(asctime)s][%(filename)s:%(lineno)d]%(message)s'
+simple_format = '[%(levelname)s]\
+                 [%(asctime)s]\
+                 [%(filename)s:%(lineno)d]\
+                 %(message)s'.replace(' ', '')
 
-id_simple_format = '[%(levelname)s][%(asctime)s] %(message)s'
+id_simple_format = '[%(levelname)s][%(asctime)s] %(message)s'.replace(' ', '')
 
 # 定义日志输出格式 结束
 
-logfile_dir = os.path.dirname(os.path.abspath(__file__))  # log文件的目录
+logfile_dir = os.path.join(os.path.dirname(
+    os.path.abspath(__file__)), 'logs')  # log文件的目录
 
-logfile_name = 'all2.log'  # log文件名
+logfile_name = 'school.log'  # log文件名
 
 # 如果不存在定义的日志目录就创建一个
 if not os.path.isdir(logfile_dir):

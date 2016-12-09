@@ -1,7 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import logging.config
 from core import schoolmember as csm
 from settings import CLASSES_MAX_STUDENTS as cms
+from settings import LOGGING_DIC
+
+
+logging.config.dictConfig(LOGGING_DIC)
+logger = logging.getLogger(__name__)
 
 
 class Classes(object):
@@ -17,14 +23,17 @@ class Classes(object):
         __max_students 为班级可容纳的最大学生数量，默认值在settings里设置
         """
         # print("classes.__init__", isinstance(school_obj, csm.School))
-        if isinstance(school_obj, csm.School):
+        try:
+            assert isinstance(
+                school_obj, csm.School),\
+                'school_obj is not a instance of School'
             self.__school = school_obj
             self.__course = 0
             self.__teacher = 0
             self.__students = []
             self.__max_students = cms
-        else:
-            raise TypeError('creator must be a instance of School')
+        except AssertionError as e:
+            logger.error(e)
 
 # 已下property装饰的函数都是访问或设置构造方法中的私有变量的唯一接口
     @property

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 from core import schoolmember as ism
+from core import classes
 
 
 def main():
@@ -26,4 +27,6 @@ def main():
     print(classes1.students)
 
 # print(__file__)
-main()
+
+if __name__ == '__main__':
+    c = classes.Classes("sss")
