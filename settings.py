@@ -55,7 +55,15 @@ COURSES = {
     }
 }
 
+# 班级可容纳的最大学生数量
 CLASSES_MAX_STUDENTS = 80
+
+# 学生考试分数取值范围
+SCORE_RANGE = {
+    "max": 100,
+    "min": 0
+}
+
 
 # 定义三种日志输出格式 开始
 

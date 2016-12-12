@@ -25,8 +25,11 @@ def main():
     t_alex.remove_students(students)
     print(s1.classes)
     print(classes1.students)
+    s1.score = 101
+    print(s1.score)
 
 # print(__file__)
 
 if __name__ == '__main__':
-    c = classes.Classes("sss")
+    main()
+    # classes.Classes("sss")

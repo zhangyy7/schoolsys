@@ -2,6 +2,7 @@
 # -*-coding: utf-8 -*-
 from core import classes
 from settings import COURSES
+from settings import SCORE_RANGE
 
 
 class School(object):
@@ -19,7 +20,7 @@ class School(object):
         """创建班级"""
         # print(course_obj)
         clas_obj = classes.Classes(self)
-        # print(clas_obj)
+        print(clas_obj)
         clas_obj.course = course_obj
         clas_obj.teacher = teacher_obj
         # print("create_classes:clas_obj.course:", clas_obj.course)
@@ -43,15 +44,23 @@ class School(object):
 class Course(object):
     """课程类"""
 
+    def __new__(cls, creator, name):
+        """
+        创建课程对象
+        如果creator不是School抛异常
+        如果创建的课程名称不属于本校区的课程抛异常
+        """
+        assert isinstance(
+            creator, School), 'only the School can create Teacher'
+        assert creator.location in COURSES[name][
+            "location"], 'the School without this course'
+        return super(Course, cls).__new__(cls)
+
     def __init__(self, creator, name):
         # print(isinstance(creator, School))
-        if isinstance(creator, School) and\
-           creator.location in COURSES[name]["location"]:
-            self.name = name
-            self.__cycle = 0
-            self.__price = 0
-        else:
-            raise NameError("不能实例化我")
+        self.name = name
+        self.__cycle = 0
+        self.__price = 0
 
     # def __str__(self):
     #     """返回实例的所有属性"""
@@ -119,13 +128,16 @@ class SchoolMember(object):
 class Teacher(SchoolMember):
     """讲师类，学校成员的一个子类"""
 
+    def __new__(cls, name, age, sex, creator):
+        """创建讲师对象，如果创建者不是school抛异常 """
+        assert isinstance(
+            creator, School), 'only the School can create Teacher'
+        return super(Teacher, cls).__new__(cls)
+
     def __init__(self, name, age, sex, creator):
         super(Teacher, self).__init__(name, age, sex)
-        if isinstance(creator, School):
-            self.school = creator
-            self.classes = 0
-        else:
-            raise TypeError('creator must be a instance of School')
+        self.school = creator
+        self.classes = 0
 
     def enroll(self, course, amount):
         super(Teacher, self).enroll()
@@ -200,6 +212,7 @@ class Student(SchoolMember):
         self.__ispaied = 0
         self.__tuition = 0
         self.__classes = 0
+        self.__score = 0
 
     @property
     def school(self):
@@ -258,5 +271,19 @@ class Student(SchoolMember):
         assert isinstance(classes_obj, classes.Classes)
         self.__classes = classes_obj
 
-    def __delattr__(self, classes_obj):
+    @classes.deleter
+    def classes(self):
         self.__classes = 0
+
+    @property
+    def score(self):
+        return self.__score
+
+    @score.setter
+    def score(self, value):
+        """设置分数"""
+        if SCORE_RANGE["min"] <= int(value) <= SCORE_RANGE["max"]:
+            self.__score = value
+        else:
+            raise ValueError('score must between {min}-{max}'.format(
+                min=SCORE_RANGE["min"], max=SCORE_RANGE["max"]))
