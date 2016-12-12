@@ -130,3 +130,15 @@ LOGGING_DIC = {
         },
     },
 }
+
+DATABASE = {
+    "engineer": {
+        "file": {
+            "school": os.path.join(BASE_PATH, 'data', 'schools.pickle'),
+            "classes": os.path.join(BASE_PATH, 'data', 'classes.pickle'),
+            "student": os.path.join(BASE_PATH, 'data', 'students.pickle'),
+            "teacher": os.path.join(BASE_PATH, 'data', 'teachers.pickle')
+        },
+        "mysql": {}
+    }
+}

@@ -1,8 +1,12 @@
 #! /usr/bin/env python
 # -*-coding: utf-8 -*-
+import pickle
+import os
+
 from core import classes
 from settings import COURSES
 from settings import SCORE_RANGE
+from settings import DATABASE
 
 
 class School(object):
@@ -24,6 +28,9 @@ class School(object):
         clas_obj.course = course_obj
         clas_obj.teacher = teacher_obj
         # print("create_classes:clas_obj.course:", clas_obj.course)
+        cla_path = DATABASE["engineer"]["file"]["classes"]
+        with open(cla_path, 'wb') as f:
+            pickle.dump(clas_obj, f)
         return clas_obj
 
     def create_course(self, course_name, cycle, price):
@@ -203,7 +210,11 @@ class Teacher(SchoolMember):
 
 
 class Student(SchoolMember):
-    """学生类，继承自学校成员类"""
+    """
+    学生类，继承自学校成员类
+    应该有学号 属性，作为学生的唯一标识，应该实例化时自动分配
+    写成类属性程序重新运行还是会重置，暂时没有想到怎么实现
+    """
 
     def __init__(self, name, age, sex):
         super(Student, self).__init__(name, age, sex)
@@ -268,8 +279,13 @@ class Student(SchoolMember):
 
     @classes.setter
     def classes(self, classes_obj):
-        assert isinstance(classes_obj, classes.Classes)
-        self.__classes = classes_obj
+        assert isinstance(
+            classes_obj, classes.Classes),\
+            'the value must be a instance of classes'
+        if self.ispaied:
+            self.__classes = classes_obj
+        else:
+            raise ValueError('no paied the course')
 
     @classes.deleter
     def classes(self):

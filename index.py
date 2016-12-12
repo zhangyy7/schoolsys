@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import pickle
+from settings import DATABASE
 from core import schoolmember as ism
 from core import classes
 
@@ -17,6 +19,7 @@ def main():
     t_alex.classes = classes1
     s1 = ism.Student('kandaoge', 18, 'M')
     s1.enroll(school_beijing, python)
+    s1.pay_tuition()
     students = []
     students.append(s1)
     t_alex.add_students(students)
@@ -31,5 +34,9 @@ def main():
 # print(__file__)
 
 if __name__ == '__main__':
-    main()
-    # classes.Classes("sss")
+    # main()
+    # # classes.Classes("sss")
+    f = open(DATABASE["engineer"]["file"]["classes"], 'rb')
+    c = pickle.load(f)
+    f.close
+    print(c)
