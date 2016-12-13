@@ -13,11 +13,11 @@ logger = logging.getLogger(__name__)
 class Classes(object):
     """班级类"""
 
-    def __new__(cls, school_obj):
-        """创建班级对象，如果创建者不是school就抛异常，不创建对象"""
-        assert isinstance(
-            school_obj, csm.School), 'only the School can create Classes'
-        return super(Classes, cls).__new__(cls)
+    # def __new__(cls, school_obj):
+    #     """创建班级对象，如果创建者不是school就抛异常，不创建对象"""
+    #     assert isinstance(
+    #         school_obj, csm.School), 'only the School can create Classes'
+    #     return super(Classes, cls).__new__(cls)
 
     def __init__(self, school_obj):
         """
@@ -29,7 +29,7 @@ class Classes(object):
         __max_students 为班级可容纳的最大学生数量，默认值在settings里设置
         """
         # print("classes.__init__", isinstance(school_obj, csm.School))
-        print(self)
+        # print(self)
         self.__school = school_obj
         self.__course = 0
         self.__teacher = 0
@@ -40,6 +40,11 @@ class Classes(object):
     @property
     def school(self):
         return self.__school
+
+    @school.setter
+    def school(self, school_obj):
+        assert isinstance(school_obj, csm.School), 'value only a school'
+        self.__school = school_obj
 
     @property
     def course(self):

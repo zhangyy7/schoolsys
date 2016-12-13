@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 # -*-coding: utf-8 -*-
 import pickle
-import os
 
 from core import classes
 from settings import COURSES
@@ -24,13 +23,14 @@ class School(object):
         """创建班级"""
         # print(course_obj)
         clas_obj = classes.Classes(self)
-        print(clas_obj)
+        # print(clas_obj)
         clas_obj.course = course_obj
         clas_obj.teacher = teacher_obj
         # print("create_classes:clas_obj.course:", clas_obj.course)
         cla_path = DATABASE["engineer"]["file"]["classes"]
         with open(cla_path, 'wb') as f:
-            pickle.dump(clas_obj, f)
+            pickler = pickle.Pickler(f)
+            pickler.dump(clas_obj)
         return clas_obj
 
     def create_course(self, course_name, cycle, price):
@@ -51,21 +51,22 @@ class School(object):
 class Course(object):
     """课程类"""
 
-    def __new__(cls, creator, name):
-        """
-        创建课程对象
-        如果creator不是School抛异常
-        如果创建的课程名称不属于本校区的课程抛异常
-        """
-        assert isinstance(
-            creator, School), 'only the School can create Teacher'
-        assert creator.location in COURSES[name][
-            "location"], 'the School without this course'
-        return super(Course, cls).__new__(cls)
+    # def __new__(cls, creator, name):
+    #     """
+    #     创建课程对象
+    #     如果creator不是School抛异常
+    #     如果创建的课程名称不属于本校区的课程抛异常
+    #     """
+    #     assert isinstance(
+    #         creator, School), 'only the School can create Teacher'
+    #     assert creator.location in COURSES[name][
+    #         "location"], 'the School without this course'
+    #     return super(Course, cls).__new__(cls)
 
     def __init__(self, creator, name):
         # print(isinstance(creator, School))
         self.name = name
+        self.school = creator
         self.__cycle = 0
         self.__price = 0
 
@@ -135,20 +136,21 @@ class SchoolMember(object):
 class Teacher(SchoolMember):
     """讲师类，学校成员的一个子类"""
 
-    def __new__(cls, name, age, sex, creator):
-        """创建讲师对象，如果创建者不是school抛异常 """
-        assert isinstance(
-            creator, School), 'only the School can create Teacher'
-        return super(Teacher, cls).__new__(cls)
+    # def __new__(cls, name, age, sex, creator):
+    #     """创建讲师对象，如果创建者不是school抛异常 """
+    #     assert isinstance(
+    #         creator, School), 'only the School can create Teacher'
+    #     return super(Teacher, cls).__new__(cls)
 
     def __init__(self, name, age, sex, creator):
         super(Teacher, self).__init__(name, age, sex)
         self.school = creator
         self.classes = 0
+        self.__salary = 0
 
     def enroll(self, course, amount):
         super(Teacher, self).enroll()
-        self.__salary = 0  # 构造对象时默认为0，后续通过setter方法进行赋值
+        # 构造对象时默认为0，后续通过setter方法进行赋值
         if isinstance(course, Course):
             self.course = course
         else:
@@ -249,7 +251,7 @@ class Student(SchoolMember):
 
     @ispaied.setter
     def ispaied(self, value):
-        assert value in ["0", "1"]
+        assert value in [0, 1]
         self.__ispaied = int(value)
 
     @property

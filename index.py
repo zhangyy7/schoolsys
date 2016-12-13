@@ -3,17 +3,16 @@
 import pickle
 from settings import DATABASE
 from core import schoolmember as ism
-from core import classes
 
 
 def main():
     """程序入口"""
 
-    school_shanghai = ism.School("oldboyedu", "shanghai")
+    # school_shanghai = ism.School("oldboyedu", "shanghai")
     school_beijing = ism.School('oldboyedu', 'beijing')
-    golang = school_shanghai.create_course('Golang', 36, 15000)
+    # golang = school_shanghai.create_course('Golang', 36, 15000)
     python = school_beijing.create_course('Python', 52, 19000)
-    linux = school_beijing.create_course('Linux', 24, 8000)
+    # linux = school_beijing.create_course('Linux', 24, 8000)
     t_alex = school_beijing.create_teacher('alex', 28, 'M', python, 50000)
     classes1 = school_beijing.create_classes(python, t_alex)
     t_alex.classes = classes1
@@ -23,20 +22,22 @@ def main():
     students = []
     students.append(s1)
     t_alex.add_students(students)
-    print(s1.classes)
+    # print(s1.classes)
     print(classes1.students)
-    t_alex.remove_students(students)
-    print(s1.classes)
-    print(classes1.students)
-    s1.score = 101
-    print(s1.score)
+    with open(DATABASE["engineer"]["file"]["classes"], 'wb') as f1:
+        p = pickle.Pickler(f1)
+        p.dump(classes1)
+    # t_alex.remove_students(students)
+    # print(s1.classes)
+    # print(classes1.students)
+    # s1.score = 100
+    # print(s1.score)
 
-# print(__file__)
+    with open(DATABASE["engineer"]["file"]["classes"], 'rb') as f:
+        up = pickle.Unpickler(f)
+        c = up.load()
+    print(c.students)
 
 if __name__ == '__main__':
-    # main()
+    main()
     # # classes.Classes("sss")
-    f = open(DATABASE["engineer"]["file"]["classes"], 'rb')
-    c = pickle.load(f)
-    f.close
-    print(c)

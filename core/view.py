@@ -5,10 +5,10 @@ from core import schoolmember as sm
 
 
 class StudentView(sm.Student):
-    pass
+    views = "1.注册   2.交费   3.选班级"
 
 
-class TeacherView(sm.Teacher):
+class TeacherView(sm.Teacher, cla.Classes):
     pass
 
 
