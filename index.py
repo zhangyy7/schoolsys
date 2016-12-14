@@ -1,7 +1,5 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import pickle
-from settings import DATABASE
 from core import schoolmember as ism
 
 
@@ -24,19 +22,7 @@ def main():
     t_alex.add_students(students)
     # print(s1.classes)
     print(classes1.students)
-    with open(DATABASE["engineer"]["file"]["classes"], 'wb') as f1:
-        p = pickle.Pickler(f1)
-        p.dump(classes1)
-    # t_alex.remove_students(students)
-    # print(s1.classes)
-    # print(classes1.students)
-    # s1.score = 100
-    # print(s1.score)
 
-    with open(DATABASE["engineer"]["file"]["classes"], 'rb') as f:
-        up = pickle.Unpickler(f)
-        c = up.load()
-    print(c.students)
 
 if __name__ == '__main__':
     main()

@@ -8,8 +8,8 @@ def pickle_to_file(filepath, obj):
     """dump对象到文件"""
 
     with open(filepath, mode='wb') as f:
-        pickler = _pickle.Pickler(f)
-        pickler.dump(obj)
+        pick = _pickle.Pickler(f)
+        pick.dump(obj)
 
 
 def upickle_from_file(filepath):
@@ -18,5 +18,6 @@ def upickle_from_file(filepath):
     obj = {}
     if os.path.isfile(filepath):
         with open(filepath, mode='rb') as f:
-            obj = _pickle.Unpickler(f)
+            upick = _pickle.Unpickler(f)
+            obj = upick.load()
     return obj

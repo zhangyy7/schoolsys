@@ -1,13 +1,9 @@
 #! /usr/bin/env python
 # -*-coding: utf-8 -*-
-import pickle
-import os
-
 import util
-from core import classes
-from settings import COURSES
-from settings import SCORE_RANGE
-from settings import DATABASE
+from settings import COURSES, DATABASE, SCORE_RANGE
+
+from . import classes
 
 
 class School(object):
@@ -28,9 +24,11 @@ class School(object):
         # print(clas_obj)
         clas_obj.course = course_obj
         clas_obj.teacher = teacher_obj
+        print(clas_obj.num)
         # print("create_classes:clas_obj.course:", clas_obj.course)
         cla_path = DATABASE["engineer"]["file"]["classes"]
         cla_dict = util.upickle_from_file(cla_path)
+        print(type(cla_dict), cla_dict)
         cla_dict[clas_obj.num] = clas_obj
         util.pickle_to_file(cla_path, cla_dict)
         return clas_obj
@@ -43,7 +41,7 @@ class School(object):
         cou_path = DATABASE["engineer"]["file"]["course"]
         cou_dict = util.upickle_from_file(cou_path)
         cou_dict[course_obj.name] = course_obj
-        util.upickle_from_file(cou_path, cou_dict)
+        util.pickle_to_file(cou_path, cou_dict)
         return course_obj
 
     def create_teacher(self, name, age, sex, course, salary):
@@ -51,23 +49,16 @@ class School(object):
         teacher = Teacher(name, age, sex, self)
         teacher.course = course
         teacher.salary = salary
+
+        teacher_path = DATABASE["engineer"]["file"]["teacher"]
+        teacher_dict = util.upickle_from_file(teacher_path)
+        teacher_dict[teacher.num] = teacher
+        util.pickle_to_file(teacher_path, teacher_dict)
         return teacher
 
 
 class Course(object):
     """课程类"""
-
-    # def __new__(cls, creator, name):
-    #     """
-    #     创建课程对象
-    #     如果creator不是School抛异常
-    #     如果创建的课程名称不属于本校区的课程抛异常
-    #     """
-    #     assert isinstance(
-    #         creator, School), 'only the School can create Teacher'
-    #     assert creator.location in COURSES[name][
-    #         "location"], 'the School without this course'
-    #     return super(Course, cls).__new__(cls)
 
     def __init__(self, creator, name):
         # print(isinstance(creator, School))
@@ -75,13 +66,6 @@ class Course(object):
         self.school = creator
         self.__cycle = 0
         self.__price = 0
-
-    # def __str__(self):
-    #     """返回实例的所有属性"""
-    #     info = ""
-    #     for k, v in self.__dict__.items():
-    #         info += "%s: %s\n" % (k, v)
-    #     return "=====info=====\n%s=====end=====" % info
 
     def __eq__(self, other):
         return self.name == other.name
@@ -129,30 +113,19 @@ class SchoolMember(object):
     def enroll(self):
         SchoolMember.member += 1
 
-    # def __str__(self):
-    #     """返回实例的所有属性"""
-    #     info = ""
-    #     for k, v in self.__dict__.items():
-    #         info += "%s: %s\n" % (k, v)
-    #     return "=====info=====\n%s=====end=====" % info
-
-    # __repr__ = __str__
-
 
 class Teacher(SchoolMember):
     """讲师类，学校成员的一个子类"""
 
-    # def __new__(cls, name, age, sex, creator):
-    #     """创建讲师对象，如果创建者不是school抛异常 """
-    #     assert isinstance(
-    #         creator, School), 'only the School can create Teacher'
-    #     return super(Teacher, cls).__new__(cls)
+    teacher_num = 0
 
     def __init__(self, name, age, sex, creator):
         super(Teacher, self).__init__(name, age, sex)
         self.school = creator
         self.classes = 0
         self.__salary = 0
+        self.num = Teacher.teacher_num + 1
+        Teacher.teacher_num += 1
 
     def enroll(self, course, amount):
         super(Teacher, self).enroll()
