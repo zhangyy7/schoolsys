@@ -1,7 +1,9 @@
 #! /usr/bin/env python
 # -*-coding: utf-8 -*-
 import pickle
+import os
 
+import util
 from core import classes
 from settings import COURSES
 from settings import SCORE_RANGE
@@ -28,9 +30,9 @@ class School(object):
         clas_obj.teacher = teacher_obj
         # print("create_classes:clas_obj.course:", clas_obj.course)
         cla_path = DATABASE["engineer"]["file"]["classes"]
-        with open(cla_path, 'wb') as f:
-            pickler = pickle.Pickler(f)
-            pickler.dump(clas_obj)
+        cla_dict = util.upickle_from_file(cla_path)
+        cla_dict[clas_obj.num] = clas_obj
+        util.pickle_to_file(cla_path, cla_dict)
         return clas_obj
 
     def create_course(self, course_name, cycle, price):
@@ -38,6 +40,10 @@ class School(object):
         course_obj = Course(self, course_name)
         course_obj.cycle = cycle
         course_obj.price = price
+        cou_path = DATABASE["engineer"]["file"]["course"]
+        cou_dict = util.upickle_from_file(cou_path)
+        cou_dict[course_obj.name] = course_obj
+        util.upickle_from_file(cou_path, cou_dict)
         return course_obj
 
     def create_teacher(self, name, age, sex, course, salary):

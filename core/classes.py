@@ -13,11 +13,7 @@ logger = logging.getLogger(__name__)
 class Classes(object):
     """班级类"""
 
-    # def __new__(cls, school_obj):
-    #     """创建班级对象，如果创建者不是school就抛异常，不创建对象"""
-    #     assert isinstance(
-    #         school_obj, csm.School), 'only the School can create Classes'
-    #     return super(Classes, cls).__new__(cls)
+    classes_num = 0
 
     def __init__(self, school_obj):
         """
@@ -35,6 +31,8 @@ class Classes(object):
         self.__teacher = 0
         self.__students = []
         self.__max_students = cms
+        self.num = Classes.classes_num + 1
+        Classes.classes_num += 1
 
 # 已下property装饰的函数都是访问或设置构造方法中的私有变量的唯一接口
     @property
