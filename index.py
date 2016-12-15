@@ -22,6 +22,7 @@ def main():
     t_alex.add_students(students)
     # print(s1.classes)
     print(classes1.students)
+    classes1.add_student(s1, t_alex)
 
 
 if __name__ == '__main__':
