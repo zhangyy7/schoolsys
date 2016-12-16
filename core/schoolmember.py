@@ -14,7 +14,7 @@ class School(object):
         param name: 学校名称
         param location: 学校所在城市
         """
-        self.schoolname = schoolname
+        self.name = schoolname
         self.location = location
 
     def create_classes(self, course_obj, teacher_obj):
@@ -197,6 +197,8 @@ class Student(SchoolMember):
     写成类属性程序重新运行还是会重置，暂时没有想到怎么实现
     """
 
+    __stu_no = 0
+
     def __init__(self, name, age, sex):
         super(Student, self).__init__(name, age, sex)
         self.__school = 0
@@ -205,6 +207,12 @@ class Student(SchoolMember):
         self.__tuition = 0
         self.__classes = 0
         self.__score = 0
+        Student.stu_no += 1
+        self.__num = Student.stu_no
+
+    @property
+    def stu_no(self):
+        return self.__num
 
     @property
     def school(self):
@@ -249,10 +257,11 @@ class Student(SchoolMember):
         self.school = school
         self.course = course
 
-    def pay_tuition(self):
+    def pay_tuition(self, amount):
         """交学费方法"""
-        self.tuition = self.course.price
-        self.ispaied = 1
+        if int(amount) >= self.course.price:
+            self.tuition = self.course.price
+            self.ispaied = 1
 
     @property
     def classes(self):
