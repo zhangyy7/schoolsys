@@ -16,7 +16,6 @@
 
 # from enum import Enum, unique
 
-
 # @unique
 # class Weekday(Enum):
 #     Sun = 0
@@ -37,15 +36,11 @@
 # print('day1 == Weekday.Tue ?', day1 == Weekday.Tue)
 # print('day1 == Weekday(1) ?', day1 == Weekday(1))
 
-import traceback
-
-
-def fun():
-    s = traceback.extract_stack()
-    caller = s[-2][2]
-    print(type(caller))
-
-
-def a(): fun()
-
-a()
+# import traceback
+#
+#
+# def fun():
+#     s = traceback.extract_stack()
+#     caller = s[-2][2]
+#     print(type(caller))
+#
