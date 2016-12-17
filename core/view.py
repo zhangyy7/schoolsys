@@ -86,8 +86,13 @@ class StudentView(sm.Student):
 
     def pay_tuition(self):
         """交学费接口"""
-
-        tuition = input('您报名的课程学费为{}，请输入金额进行缴费：'.format(self.course.price))
+        issuccess = 0
+        while not issuccess:
+            tuition = input('您报名的课程学费为{}，请输入金额进行缴费：'.format(self.course.price))
+            try:
+                issuccess = super(StudentView, self).pay_tuition(tuition)
+            except ValueError as e:
+                print('请输入正确的金额！')
 
 
 class TeacherView(sm.Teacher, cla.Classes):

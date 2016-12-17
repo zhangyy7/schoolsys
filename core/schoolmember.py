@@ -262,6 +262,7 @@ class Student(SchoolMember):
         if int(amount) >= self.course.price:
             self.tuition = self.course.price
             self.ispaied = 1
+            return True
 
     @property
     def classes(self):
