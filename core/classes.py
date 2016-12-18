@@ -27,6 +27,7 @@ class Classes(object):
         # print("classes.__init__", isinstance(school_obj, csm.School))
         # print(self)
         self.__school = school_obj
+        self.name = 0
         self.__course = 0
         self.__teacher = 0
         self.__students = []
@@ -53,6 +54,8 @@ class Classes(object):
         assert isinstance(
             course, csm.Course), 'course must be a instance of Course'
         self.__course = course
+        self.name = "{c_name}-{num}班".format(
+            c_name=self.course.name, num=self.num)
 
     @property
     def teacher(self):

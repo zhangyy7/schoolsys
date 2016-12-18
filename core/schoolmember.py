@@ -9,6 +9,8 @@ from . import classes
 class School(object):
     """学校类"""
 
+    school_num = 0
+
     def __init__(self, schoolname, location):
         """
         param name: 学校名称
@@ -16,6 +18,8 @@ class School(object):
         """
         self.name = schoolname
         self.location = location
+        School.school_num += 1
+        self.num = School.school_num
 
     def create_classes(self, course_obj, teacher_obj):
         """创建班级"""
@@ -40,7 +44,7 @@ class School(object):
         course_obj.price = price
         cou_path = DATABASE["engineer"]["file"]["course"]
         cou_dict = util.upickle_from_file(cou_path)
-        cou_dict[course_obj.name] = course_obj
+        cou_dict[course_obj.num] = course_obj
         util.pickle_to_file(cou_path, cou_dict)
         return course_obj
 
@@ -60,12 +64,16 @@ class School(object):
 class Course(object):
     """课程类"""
 
+    course_num = 0
+
     def __init__(self, creator, name):
         # print(isinstance(creator, School))
         self.name = name
         self.school = creator
         self.__cycle = 0
         self.__price = 0
+        Course.course_num += 1
+        self.num = Course.course_num
 
     def __eq__(self, other):
         return self.name == other.name
@@ -129,7 +137,6 @@ class Teacher(SchoolMember):
 
     def enroll(self, course, amount):
         super(Teacher, self).enroll()
-        # 构造对象时默认为0，后续通过setter方法进行赋值
         if isinstance(course, Course):
             self.course = course
         else:
@@ -207,8 +214,8 @@ class Student(SchoolMember):
         self.__tuition = 0
         self.__classes = 0
         self.__score = 0
-        Student.stu_no += 1
-        self.__num = Student.stu_no
+        Student.__stu_no += 1
+        self.__num = Student.__stu_no
 
     @property
     def stu_no(self):
@@ -256,6 +263,7 @@ class Student(SchoolMember):
         assert isinstance(school, School), isinstance(course, Course)
         self.school = school
         self.course = course
+        return True
 
     def pay_tuition(self, amount):
         """交学费方法"""

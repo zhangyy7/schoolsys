@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 from core import schoolmember as ism
-from settings import DATABASE
 from util import pickle_to_file, upickle_from_file
+from core import view
 
 
 def main():
@@ -18,36 +18,42 @@ def main():
     t_alex.classes = classes1
     s1 = ism.Student('kandaoge', 18, 'M')
     s1.enroll(school_beijing, python)
-    s1.pay_tuition()
+    s1.pay_tuition(19000)
     students = []
     students.append(s1)
     t_alex.add_students(students)
     # print(s1.classes)
     print(classes1.students)
-    classes1.add_student(s1, t_alex)
+    stu_view = view.StudentView('zhangyy', 29, 'M')
+    stu_view._query_course(school_beijing)
+    stu_view.enroll()
+    # classes1.add_student(s1, t_alex)
 
 
-def _query_course():
-    """查询学校已经开设的课程"""
-    cou_path = DATABASE["engineer"]["file"]["course"]
-    course_dict = upickle_from_file(cou_path)
+# def _query_course():
+#     """查询学校已经开设的课程，返回str和dict形式"""
 
-    course_info_list = []
-    for index, course_name in enumerate(course_dict, 1):
-        single_course_tuple = (
-            '{num}.课程：{name}'.format(num=index, name=course_name),
-            '周期：{}'.format(course_dict[course_name].cycle),
-            '价格：{}'.format(course_dict[course_name].price)
-        )
-        single_course_info = '\t'.join(single_course_tuple)
-        course_info_list.append(single_course_info)
+#     cou_path = DATABASE["engineer"]["file"]["course"]
+#     course_dict = upickle_from_file(cou_path)
+#     print(course_dict)
 
-    course_info = '\n'.join(course_info_list)
-    return course_info, course_dict
+#     course_info_list = []
+
+#     for index, course_num in enumerate(course_dict, 1):
+#         single_course_tuple = (
+#             '{num}.课程编号：{course_num}'.format(num=index, course_num=course_num),
+#             '课程名称：{}'.format(course_dict[course_num].name),
+#             '周期：{}'.format(course_dict[course_num].cycle),
+#             '价格：{}'.format(course_dict[course_num].price)
+#         )
+#         single_course_info = '\t'.join(single_course_tuple)
+#         course_info_list.append(single_course_info)
+
+#     course_info = '\n'.join(course_info_list)
+#     return course_info, course_dict
 
 
 if __name__ == '__main__':
-    course_info, course_dict = _query_course()
-    print(course_info)
+    main()
 
     # # classes.Classes("sss")
