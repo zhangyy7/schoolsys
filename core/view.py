@@ -79,15 +79,21 @@ class BaseView(object):
         return classes_info, classes_dict
 
 
-class StudentView(sm.Student, BaseView):
+class StudentView(BaseView, sm.Student):
     """学员视图"""
 
     views = "1.注册   2.交费   3.选班级"
+
+    def __init__(self):
+        self.stu = 0
 
     def enroll(self):
         """学员注册接口，这个注册是选学校和课程的意思，并不是register"""
         school_info, school_dict = self._query_school()
         # print(school_info)
+        if not school_info:
+            print("学校还没成立，联系管理员或稍后再来！")
+            return
         issuccess = 0
         while not issuccess:
             myschool = 0

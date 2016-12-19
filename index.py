@@ -24,7 +24,7 @@ def main():
     t_alex.add_students(students)
     # print(s1.classes)
     print(classes1.students)
-    stu_view = view.StudentView('zhangyy', 29, 'M')
+    stu_view = view.StudentView()
     stu_view._query_course(school_beijing)
     stu_view.enroll()
     # classes1.add_student(s1, t_alex)
