@@ -107,7 +107,7 @@ LOGGING_DIC = {
     'filters': {},
     'handlers': {
         'console': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'class': 'logging.StreamHandler',  # 打印到屏幕
             'formatter': 'simple'
         },
@@ -130,6 +130,9 @@ LOGGING_DIC = {
         },
     },
 }
+
+if not os.path.isdir(os.path.join(BASE_PATH, 'data')):
+    os.makedirs(os.path.join(BASE_PATH, 'data'))
 
 DATABASE = {
     "engineer": {

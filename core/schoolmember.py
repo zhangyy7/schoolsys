@@ -1,9 +1,14 @@
 #! /usr/bin/env python
 # -*-coding: utf-8 -*-
+import logging.config
 import util
-from settings import COURSES, DATABASE, SCORE_RANGE
+from settings import COURSES, DATABASE, SCORE_RANGE, LOGGING_DIC
 
 from . import classes
+
+
+logging.config.dictConfig(LOGGING_DIC)
+logger = logging.getLogger(__name__)
 
 
 class School(object):
@@ -29,16 +34,11 @@ class School(object):
 
     def create_classes(self, course_obj, teacher_obj):
         """创建班级"""
-        # print(course_obj)
         clas_obj = classes.Classes(self)
-        # print(clas_obj)
         clas_obj.course = course_obj
         clas_obj.teacher = teacher_obj
-        print(clas_obj.num)
-        # print("create_classes:clas_obj.course:", clas_obj.course)
         cla_path = DATABASE["engineer"]["file"]["classes"]
         cla_dict = util.upickle_from_file(cla_path)
-        print(type(cla_dict), cla_dict)
         cla_dict[str(clas_obj.num)] = clas_obj
         util.pickle_to_file(cla_path, cla_dict)
         return clas_obj
@@ -56,6 +56,7 @@ class School(object):
 
     def create_teacher(self, name, age, sex, course, salary):
         """创建讲师"""
+        logger.debug('a teacher is creating')
         teacher = Teacher(name, age, sex, self)
         teacher.course = course
         teacher.salary = salary
@@ -64,6 +65,7 @@ class School(object):
         teacher_dict = util.upickle_from_file(teacher_path)
         teacher_dict[str(teacher.num)] = teacher
         util.pickle_to_file(teacher_path, teacher_dict)
+        logger.debug('teacher {} created finish'.format(teacher.name))
         return teacher
 
 
@@ -139,7 +141,7 @@ class Teacher(SchoolMember):
     def __init__(self, name, age, sex, creator):
         super(Teacher, self).__init__(name, age, sex)
         self.school = creator
-        self.classes = 0
+        self.classes = []
         self.__salary = 0
         self.num = Teacher.teacher_num + 1
         Teacher.teacher_num += 1
@@ -149,8 +151,7 @@ class Teacher(SchoolMember):
         if isinstance(course, Course):
             self.course = course
         else:
-            print("只能传入课程")
-            return "错误码"
+            raise ValueError("course must be a instance of Course")
         self.salary = amount
 
     def __set_salary(self, amount):
@@ -158,13 +159,13 @@ class Teacher(SchoolMember):
 
         amount = int(amount)
         if amount > COURSES[self.course.name]["salary"]["max"]:
-            print("%s 讲师的薪水上限为%d,你咋不上天呢！" %
-                  (self.course.name,
-                   COURSES[self.course.name]["salary"]["max"]))
+            raise ValueError("%s 讲师的薪水上限为%d,你咋不上天呢！" %
+                             (self.course.name,
+                              COURSES[self.course.name]["salary"]["max"]))
         elif amount < COURSES[self.course.name]["salary"]["min"]:
-            print("%s 讲师的薪水最少也得%d,你打发要饭的呢！" %
-                  (self.course.name,
-                   COURSES[self.course.name]["salary"]["min"]))
+            raise ValueError("%s 讲师的薪水最少也得%d,你打发要饭的呢！" %
+                             (self.course.name,
+                              COURSES[self.course.name]["salary"]["min"]))
         else:
             self.__salary = amount
 
@@ -184,7 +185,7 @@ class Teacher(SchoolMember):
         """绑定班级"""
         if isinstance(classes_obj, classes.Classes):
             if self.course == classes_obj.course and not classes_obj.teacher:
-                self.classes = classes_obj
+                self.classes.append(classes_obj)
             else:
                 raise KeyError('该班级已经有老师了')
         else:
@@ -204,6 +205,18 @@ class Teacher(SchoolMember):
             if student.classes == self.classes:
                 self.classes.remove_student(student, self)
                 del student.classes
+
+    def teaching(self, classes_obj):
+        if classes_obj in self.classes:
+            print(
+                "{t_name}正在给{cla_name}上{course_name}".format(
+                    t_name=self.name,
+                    cla_name=self.classes.name,
+                    course_name=self.course.name
+                )
+            )
+        else:
+            raise ValueError("您不是{}的讲师".format(self.classes.name))
 
 
 class Student(SchoolMember):

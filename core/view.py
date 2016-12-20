@@ -1,9 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf8 -*-
-from core import classes as cla
+import logging.config
 from core import schoolmember as sm
-from settings import DATABASE
+from settings import DATABASE, LOGGING_DIC
 from util import pickle_to_file, upickle_from_file
+
+
+logging.config.dictConfig(LOGGING_DIC)
+logger = logging.getLogger(__name__)
 
 
 class BaseView(object):
@@ -41,7 +45,6 @@ class BaseView(object):
         """查询学校信息，返回str形式和字典形式"""
 
         school_dict = upickle_from_file(self.school_path)
-        print(school_dict)
         school_info_list = []
         for index, school_num in enumerate(school_dict, 1):
             single_school_tuple = (
@@ -78,6 +81,22 @@ class BaseView(object):
         classes_info = '\n'.join(classes_info_list)
         return classes_info, classes_dict
 
+    def _query_teacher(self, course_obj):
+        """查询讲师信息"""
+        teacher_dict = upickle_from_file(self.teacher_path)
+        teacher_info_list = []
+        for num, teacher in teacher_dict:
+            if teacher.course == course_obj:
+                single_teacher_tuple = (
+                    "讲师编号：{}".format(num),
+                    "讲师姓名：{}".format(teacher.name),
+                    "所授课程：{}".format(teacher.course.name)
+                )
+                single_teacher_info = '\t'.join(single_teacher_tuple)
+                teacher_info_list.append(single_teacher_info)
+        teacher_info = '\n'.join(teacher_info_list)
+        return teacher_info, teacher_dict
+
 
 class StudentView(BaseView):
     """学员视图"""
@@ -99,15 +118,15 @@ class StudentView(BaseView):
         self.stu = sm.Student(stu_name, stu_age, stu_sex)
         stu_dict[self.stu.stu_no] = self.stu
         pickle_to_file(self.stu_path, stu_dict)
-        # return self.stu
+        logger.debug("new student [{}] is registing".format(stu_name))
 
     def enroll(self):
         """学员注册接口，这个注册是选学校和课程的意思，并不是register"""
+        logger.debug('new student start enroll')
         if not self.stu:
             self.register()
         school_info, school_dict = self._query_school()
         self.stu_dict = upickle_from_file(self.stu_path)
-        # print(school_info)
         if not school_info:
             print("学校还没成立，联系管理员或稍后再来！")
             return
@@ -119,11 +138,11 @@ class StudentView(BaseView):
                     '以下是学校信息，请选择您要报名哪所学校：\n{}'.format(school_info)
                 )
                 myschool = school_dict.get(choice_school_num, 0)
-
             choice_school_info = '您选择了学校{name}，\
                                 归属地为{local}'.format(name=myschool.name,
                                                     local=myschool.location)
             print(choice_school_info)
+            logger.debug(choice_school_info)
 
             course_info, course_dict = self._query_course(myschool)
             mycourse = 0
@@ -139,15 +158,18 @@ class StudentView(BaseView):
                    cycle=mycourse.cycle,
                    price=mycourse.price)
             print(choice_course_info)
+            logger.debug(choice_course_info)
             try:
                 issuccess = self.stu.enroll(myschool, mycourse)
                 self.stu_dict[self.stu.stu_no] = self.stu
                 pickle_to_file(self.stu_path, self.stu_dict)
+                logger.debug('the student enrolled finish')
             except AssertionError as e:
-                print(e)
+                logger.error(e)
 
     def pay_tuition(self):
         """交学费接口"""
+        logger.debug('{} is starting pay tuition'.format(self.stu.name))
         issuccess = 0
         while not issuccess:
             tuition = input('您报名的课程学费为{}，请输入金额进行缴费：'.format(
@@ -157,11 +179,16 @@ class StudentView(BaseView):
                 stu_dict = upickle_from_file(self.stu_path)
                 stu_dict[self.stu.num] = self.stu
                 pickle_to_file(self.stu_path, stu_dict)
+                logger.debug(
+                    'the student {} finished pay'.format(self.stu.name))
             except ValueError as e:
                 print('请输入正确的金额！')
+                logger.error(e)
 
     def choice_classes(self):
         """选班级"""
+        logger.debug(
+            'the student {} is starting choice classes'.format(self.stu.name))
         classes_info, classes_dict = self._query_classes()
 
         issuccess = 0
@@ -175,13 +202,16 @@ class StudentView(BaseView):
             try:
                 self.classes = myclasses
                 issuccess = 1
+                logger.debug('student {} finished choice classes[{}]'.format(
+                    self.stu.name, self.stu.classes.name))
             except AssertionError as e:
-                print(e)
+                logger.error(e)
             except ValueError as e:
-                print(e)
+                logger.error(e)
 
 
-class TeacherView(sm.Teacher, BaseView):
+class TeacherView(BaseView):
+    """讲师视图"""
     pass
 
 
@@ -196,10 +226,12 @@ class AdminView(BaseView):
         _, school_dict = self._query_school()
         school_dict[str(school_obj.num)] = school_obj
         pickle_to_file(self.school_path, school_dict)
+        logger.debug('school {} created'.format(school_obj.name))
         return school_obj
 
     def create_teacher(self, school_obj):
         """创建讲师"""
+
         teacher_name = input("请输入讲师姓名：")
         teacher_age = input("请输入讲师年龄：")
         teacher_sex = input("请输入讲师性别：")
@@ -222,6 +254,7 @@ class AdminView(BaseView):
 
     def create_course(self, school_obj):
         """创建课程"""
+        logger.debug('start create course')
         _, course_dict = self._query_course(school_obj)
         course_obj = 0
         while not course_obj:
@@ -231,8 +264,44 @@ class AdminView(BaseView):
                 course_price = input("请输入课程价格：")
                 course_obj = school_obj.create_course(
                     course_name, course_cycle, course_price)
+                logger.debug(
+                    'course {} created finish'.format(course_obj.name))
             except ValueError as e:
-                print(e)
+                logger.error(e)
+
+    def create_classes(self):
+        """创建班级接口"""
+        logger.debug('starting create classes')
+        school_info, school_dict = self._query_school()
+
+        myschool = 0
+        while not myschool:
+            school_num = input("以下是学校信息，请选择为哪所学校创建班级".format(school_info))
+            myschool = school_dict.get(school_num, 0)
+
+        course_info, course_dict = self._query_course(myschool)
+        mycourse = 0
+        while not mycourse:
+            course_num = input("该校区已开课程如下，请选择：\n{}".format(course_info))
+            mycourse = course_dict.get(course_num, 0)
+            if mycourse == 0:
+                print("您输入的不正确，请重新选择")
+
+        teacher_info, teacher_dict = self._query_teacher(mycourse)
+        myteacher = 0
+        while not myteacher:
+            teacher_num = input("以下是课程{}的讲师信息，请选择：\n{}".format(
+                mycourse.name, teacher_info
+            ))
+            myteacher = teacher_dict.get(teacher_num, 0)
+            if myteacher == 0:
+                print("输入错误，请重新选择！")
+        try:
+            classes_obj = myschool.create_classes(mycourse, myteacher)
+            logger.debug('create classes[{}] end'.format(classes_obj.name))
+            return classes_obj
+        except Exception as e:
+            logger.error(e)
 
 
 def get_obj(choice):

@@ -6,7 +6,6 @@ import _pickle
 
 def pickle_to_file(filepath, obj):
     """dump对象到文件"""
-
     with open(filepath, mode='wb') as f:
         pick = _pickle.Pickler(f)
         pick.dump(obj)
