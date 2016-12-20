@@ -21,6 +21,12 @@ class School(object):
         School.school_num += 1
         self.num = School.school_num
 
+    def __eq__(self, other):
+        """重载==号"""
+        # return all((self.name == other.name, self.location ==
+        # other.location))
+        return self.location == other.location
+
     def create_classes(self, course_obj, teacher_obj):
         """创建班级"""
         # print(course_obj)
@@ -33,7 +39,7 @@ class School(object):
         cla_path = DATABASE["engineer"]["file"]["classes"]
         cla_dict = util.upickle_from_file(cla_path)
         print(type(cla_dict), cla_dict)
-        cla_dict[clas_obj.num] = clas_obj
+        cla_dict[str(clas_obj.num)] = clas_obj
         util.pickle_to_file(cla_path, cla_dict)
         return clas_obj
 
@@ -44,7 +50,7 @@ class School(object):
         course_obj.price = price
         cou_path = DATABASE["engineer"]["file"]["course"]
         cou_dict = util.upickle_from_file(cou_path)
-        cou_dict[course_obj.num] = course_obj
+        cou_dict[str(course_obj.num)] = course_obj
         util.pickle_to_file(cou_path, cou_dict)
         return course_obj
 
@@ -56,7 +62,7 @@ class School(object):
 
         teacher_path = DATABASE["engineer"]["file"]["teacher"]
         teacher_dict = util.upickle_from_file(teacher_path)
-        teacher_dict[teacher.num] = teacher
+        teacher_dict[str(teacher.num)] = teacher
         util.pickle_to_file(teacher_path, teacher_dict)
         return teacher
 
@@ -87,12 +93,14 @@ class Course(object):
 
     @cycle.setter
     def cycle(self, weeks):
-        if weeks < COURSES[self.name]["cycle"]["min"]:
-            print("这么短的时间爱因斯坦也学不会啊")
-        elif weeks > COURSES[self.name]["cycle"]["max"]:
-            print("学习周期太长了，招不到学生学校今年的开支你包了！")
+        if int(weeks) < COURSES[self.name]["cycle"]["min"]:
+            # print("这么短的时间爱因斯坦也学不会啊")
+            raise ValueError("这么短的时间爱因斯坦也学不会啊")
+        elif int(weeks) > COURSES[self.name]["cycle"]["max"]:
+            # print("学习周期太长了，招不到学生学校今年的开支你包了！")
+            raise ValueError("学习周期太长了，招不到学生学校今年的开支你包了！")
         else:
-            self.__cycle = weeks
+            self.__cycle = int(weeks)
 
     @property
     def price(self):
@@ -100,6 +108,7 @@ class Course(object):
 
     @price.setter
     def price(self, amount):
+        amount = int(amount)
         if amount < COURSES[self.name]["price"]["min"]:
             print("太便宜了，没利润喝西北风去啊！")
         elif amount > COURSES[self.name]["price"]["max"]:
