@@ -27,12 +27,12 @@ def auth(before_fn=None, after_fn=None):
 
     def decorator(fn_or_cls):
         @functools.wraps(fn_or_cls)
-        def wrapper(*args, **kwargs):
+        def wrapper(self, *args, **kwargs):
             if before_fn:
-                before_fn()
-            obj = fn_or_cls(*args, **kwargs)
+                before_fn(self)
+            obj = fn_or_cls(self, *args, **kwargs)
             if after_fn:
-                after_fn()
+                after_fn(self)
             return obj
         return wrapper
     return decorator

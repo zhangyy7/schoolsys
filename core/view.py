@@ -3,7 +3,7 @@
 import logging.config
 from core import schoolmember as sm
 from settings import DATABASE, LOGGING_DIC
-from util import pickle_to_file, upickle_from_file
+from util import pickle_to_file, upickle_from_file, auth
 
 
 logging.config.dictConfig(LOGGING_DIC)
@@ -14,17 +14,20 @@ class BaseView(object):
     """视图基类"""
 
     def __init__(self):
-        self.stu_path = DATABASE["engineer"]["file"]["student"]
+        self.student_path = DATABASE["engineer"]["file"]["student"]
         self.teacher_path = DATABASE["engineer"]["file"]["teacher"]
         self.school_path = DATABASE["engineer"]["file"]["school"]
         self.course_path = DATABASE["engineer"]["file"]["course"]
         self.classes_path = DATABASE["engineer"]["file"]["classes"]
         self.islogin = 0
+        self.try_count = 0
 
     def _query_course(self, school_obj):
         """查询学校已经开设的课程，返回str和dict形式"""
 
         course_dict = upickle_from_file(self.course_path)
+        if not course_dict:
+            raise ValueError("课程不存在，请联系管理员")
 
         course_info_list = []
 
@@ -46,6 +49,8 @@ class BaseView(object):
         """查询学校信息，返回str形式和字典形式"""
 
         school_dict = upickle_from_file(self.school_path)
+        if not school_dict:
+            raise ValueError("学校不存在请联系管理员")
         school_info_list = []
         for index, school_num in enumerate(school_dict, 1):
             single_school_tuple = (
@@ -65,6 +70,8 @@ class BaseView(object):
     def _query_classes(self, course_obj):
         """查询班级数据"""
         classes_dict = upickle_from_file(self.classes_path)
+        if not classes_dict:
+            raise ValueError("班级不存在请联系管理员")
 
         classes_info_list = []
         for index, cla_num in enumerate(classes_dict, 1):
@@ -85,6 +92,9 @@ class BaseView(object):
     def _query_teacher(self, course_obj):
         """查询讲师信息"""
         teacher_dict = upickle_from_file(self.teacher_path)
+        if not teacher_dict:
+            raise ValueError("讲师不存在，请联系管理员")
+
         teacher_info_list = []
         for num, teacher in teacher_dict:
             if teacher.course == course_obj:
@@ -109,12 +119,28 @@ class BaseView(object):
         if obj_path == 0:
             raise ValueError('account_type not exists')
         obj_dict = upickle_from_file(obj_path)
+        if not obj_dict:
+            raise ValueError('accout not exists')
         for obj_num, obj in obj_dict.items():
             if obj.name == name:
                 self.islogin = 1
                 return obj
         else:
+            self.try_count += 1
             raise ValueError('the username is not exist')
+
+    # def auth(self, before_fn=None, after_fn=None):
+    #     def decorator(fn_or_cls):
+    #         @functools.wraps(fn_or_cls)
+    #         def wrapper(self, *args, **kwargs):
+    #             if before_fn:
+    #                 before_fn(self)
+    #             obj = fn_or_cls(self, *args, **kwargs)
+    #             if after_fn:
+    #                 after_fn(self)
+    #             return obj
+    #         return wrapper
+    #     return decorator
 
 
 class StudentView(BaseView):
@@ -140,13 +166,17 @@ class StudentView(BaseView):
         logger.debug("new student [{}] is registing".format(stu_name))
         return self.stu
 
-    def login(self, name):
+    def login(self):
         logger.debug('a student start login')
-        try:
-            self.stu = super(StudentView, self).login("1", name)
-            logger.debug('success login')
-        except ValueError as e:
-            logger.error(e)
+        if self.stu == 0:
+            while self.try_count < 3:
+                stu_name = input("请输入姓名：".strip())
+                try:
+                    self.stu = super(StudentView, self).login("1", stu_name)
+                    logger.debug('success login')
+                    break
+                except ValueError as e:
+                    logger.error(e)
 
     def register_or_login(self):
         """封装register和login两个方法"""
@@ -160,13 +190,14 @@ class StudentView(BaseView):
             raise ValueError('action is not exist!')
         get_act()
 
+    @auth(register_or_login)
     def enroll(self):
         """学员注册接口，这个注册是选学校和课程的意思，并不是register"""
         logger.debug('new student start enroll')
         if not self.stu:
             self.register()
         school_info, school_dict = self._query_school()
-        self.stu_dict = upickle_from_file(self.stu_path)
+        self.stu_dict = upickle_from_file(self.student_path)
         if not school_info:
             print("学校还没成立，联系管理员或稍后再来！")
             return
@@ -202,7 +233,7 @@ class StudentView(BaseView):
             try:
                 issuccess = self.stu.enroll(myschool, mycourse)
                 self.stu_dict[self.stu.stu_no] = self.stu
-                pickle_to_file(self.stu_path, self.stu_dict)
+                pickle_to_file(self.student_path, self.stu_dict)
                 logger.debug('the student enrolled finish')
             except AssertionError as e:
                 logger.error(e)
@@ -257,13 +288,56 @@ class TeacherView(BaseView):
         super(TeacherView, self).__init__()
         self.teacher = 0
 
+    def login(self):
+        if self.teacher == 0:
+            try:
+                logger.debug('a teacher begin login')
+                while self.try_count < 3:
+                    name = input("请输入您的姓名：".strip())
+                    try:
+                        self.teacher = super(
+                            TeacherView, self).login("2", name)
+                        logger.debug('teacher[{}] login success'.format(name))
+                    except ValueError as e:
+                        logger.error(e)
+                        self.try_count += 1
+                else:
+                    raise ValueError('too many try!')
+            except ValueError as e:
+                exit(e)
+
+    @auth(login)
     def teaching(self):
         """上课接口"""
-        classes_info, classes_dict = self._query_classes()
+        classes_info, classes_dict = self._query_classes(self.teacher.course)
+        myclasses = 0
+        while not myclasses:
+            my_num = input("以下是您所受课程的所有班级信息，请选择：\n{}".format(
+                classes_info)).strip()
+            myclasses = classes_dict.get(my_num, 0)
+        print("尊敬的{}老师，感谢您为班级{}授课！".format(self.teacher.name, myclasses.name))
 
 
 class AdminView(BaseView):
     """管理视图"""
+
+    def __init__(self):
+        super(AdminView, self).__init__()
+        self.school = 0
+
+    def login(self):
+        if self.school == 0:
+            logger.debug("admin begin login")
+            while self.try_count < 3:
+                school_name = input("请输入学校名称：".strip())
+                try:
+                    self.school = super(AdminView, self).login(
+                        '3', school_name)
+                    logger.debug('login success')
+                    break
+                except ValueError as e:
+                    logger.error(e)
+                    self.try_count += 1
 
     def create_school(self):
         """创建学校"""
@@ -276,6 +350,7 @@ class AdminView(BaseView):
         logger.debug('school {} created'.format(school_obj.name))
         return school_obj
 
+    @auth(login)
     def create_teacher(self, school_obj):
         """创建讲师"""
 
@@ -299,6 +374,7 @@ class AdminView(BaseView):
         )
         return teacher_obj
 
+    @auth(login)
     def create_course(self, school_obj):
         """创建课程"""
         logger.debug('start create course')
@@ -316,6 +392,7 @@ class AdminView(BaseView):
             except ValueError as e:
                 logger.error(e)
 
+    @auth(login)
     def create_classes(self):
         """创建班级接口"""
         logger.debug('starting create classes')

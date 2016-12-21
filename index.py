@@ -31,6 +31,8 @@ def main():
     stu_view = view.StudentView()
     # stu_view._query_course(school_beijing)
     stu_view.enroll()
+    teacher_view = view.TeacherView()
+    teacher_view.teaching()
     # classes1.add_student(s1, t_alex)
     # course_path = settings.DATABASE["engineer"]["file"]["course"]
     # cour = upickle_from_file(course_path)
@@ -61,4 +63,4 @@ def main():
 if __name__ == '__main__':
     main()
 
-    # # classes.Classes("sss")
+    # # classes.Classes("sss")on
