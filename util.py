@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import os
 import _pickle
+import functools
 
 
 def pickle_to_file(filepath, obj):
@@ -20,3 +21,18 @@ def upickle_from_file(filepath):
             upick = _pickle.Unpickler(f)
             obj = upick.load()
     return obj
+
+
+def auth(before_fn=None, after_fn=None):
+
+    def decorator(fn_or_cls):
+        @functools.wraps(fn_or_cls)
+        def wrapper(*args, **kwargs):
+            if before_fn:
+                before_fn()
+            obj = fn_or_cls(*args, **kwargs)
+            if after_fn:
+                after_fn()
+            return obj
+        return wrapper
+    return decorator

@@ -19,6 +19,7 @@ class BaseView(object):
         self.school_path = DATABASE["engineer"]["file"]["school"]
         self.course_path = DATABASE["engineer"]["file"]["course"]
         self.classes_path = DATABASE["engineer"]["file"]["classes"]
+        self.islogin = 0
 
     def _query_course(self, school_obj):
         """查询学校已经开设的课程，返回str和dict形式"""
@@ -97,6 +98,24 @@ class BaseView(object):
         teacher_info = '\n'.join(teacher_info_list)
         return teacher_info, teacher_dict
 
+    def login(self, account_type, name):
+        """"登陆方法"""
+        account_type_route = {
+            "1": self.student_path,
+            "2": self.teacher_path,
+            "3": self.school_path
+        }
+        obj_path = account_type_route.get(account_type, 0)
+        if obj_path == 0:
+            raise ValueError('account_type not exists')
+        obj_dict = upickle_from_file(obj_path)
+        for obj_num, obj in obj_dict.items():
+            if obj.name == name:
+                self.islogin = 1
+                return obj
+        else:
+            raise ValueError('the username is not exist')
+
 
 class StudentView(BaseView):
     """学员视图"""
@@ -119,6 +138,27 @@ class StudentView(BaseView):
         stu_dict[self.stu.stu_no] = self.stu
         pickle_to_file(self.stu_path, stu_dict)
         logger.debug("new student [{}] is registing".format(stu_name))
+        return self.stu
+
+    def login(self, name):
+        logger.debug('a student start login')
+        try:
+            self.stu = super(StudentView, self).login("1", name)
+            logger.debug('success login')
+        except ValueError as e:
+            logger.error(e)
+
+    def register_or_login(self):
+        """封装register和login两个方法"""
+        act = {
+            "1": self.login,
+            "2": self.register
+        }
+        act_num = input("1.登录已有账号\n2.注册新账号")
+        get_act = act.get(act_num, 0)
+        if get_act == 0:
+            raise ValueError('action is not exist!')
+        get_act()
 
     def enroll(self):
         """学员注册接口，这个注册是选学校和课程的意思，并不是register"""
@@ -212,7 +252,14 @@ class StudentView(BaseView):
 
 class TeacherView(BaseView):
     """讲师视图"""
-    pass
+
+    def __init__(self):
+        super(TeacherView, self).__init__()
+        self.teacher = 0
+
+    def teaching(self):
+        """上课接口"""
+        classes_info, classes_dict = self._query_classes()
 
 
 class AdminView(BaseView):
