@@ -1,10 +1,10 @@
-#! /usr/bin/env python
+#!  /usr/bin/env python
 # -*- coding: utf-8 -*-
-import bin.main
+from core import view
 
 
 def main():
-    bin.main.main()
+    view.main()
 
 
 if __name__ == '__main__':
