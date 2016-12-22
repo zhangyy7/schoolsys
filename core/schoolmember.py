@@ -218,6 +218,14 @@ class Teacher(SchoolMember):
         else:
             raise ValueError("您不是{}的讲师".format(self.classes.name))
 
+    def modify_student_score(self, student_obj, score):
+        """修改学生成绩"""
+        if student_obj in self.classes.students:
+            student_obj.score = score
+            return True
+        else:
+            raise PermissionError('您无权管理此同学！')
+
 
 class Student(SchoolMember):
     """

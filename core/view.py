@@ -108,6 +108,23 @@ class BaseView(object):
         teacher_info = '\n'.join(teacher_info_list)
         return teacher_info, teacher_dict
 
+    def _query_student(self):
+        student_dict = upickle_from_file(self.student_path)
+        if not student_dict:
+            raise ValueError("学生不存，努力招生吧！")
+
+        student_info_list = []
+        for num, student in student_dict:
+            single_student_tuple = (
+                "学生编号：{}".format(num),
+                "学生姓名：{}".format(student.name),
+                "课程：{}".format(student.course.name)
+            )
+            single_teacher_info = '\t'.join(single_student_tuple)
+            student_info_list.append(single_teacher_info)
+        student_info = '\n'.join(student_info_list)
+        return student_info, student_dict
+
     def login(self, account_type, name):
         """"登陆方法"""
         account_type_route = {
@@ -317,6 +334,36 @@ class TeacherView(BaseView):
             myclasses = classes_dict.get(my_num, 0)
         print("尊敬的{}老师，感谢您为班级{}授课！".format(self.teacher.name, myclasses.name))
 
+    @auth(login)
+    def modify_student_score(self):
+        """"""
+        info_list = []
+        for classes in self.teacher.classes:
+            for student in classes.students:
+                single_student_info = '学生编号：{num}\t学生姓名：{sname}\t班级名称：{cname}'.format(
+                    num=student.num, sname=student.name, cname=classes.name)
+                info_list.append(single_student_info)
+        student_info = '\n'.join(info_list)
+
+        current_student = 0
+        while not current_student:
+            choice_num = input(
+                "您管理的学生如下，请选择要修改的学生编号：{}".format(student_info)).strip()
+            stu_info, stu_dict = self._query_student()
+            current_student = stu_dict.get(choice_num, 0)
+
+        issuccess = 0
+        while not issuccess:
+            try:
+                new_score = input("学生{}当前成绩是{}".format(
+                    current_student.name, current_student.score))
+                issuccess = self.teacher.modify_student_score(
+                    current_student, int(new_score))
+                print("您已成功将学生{}的成绩修改为{}".format(
+                    current_student.name, new_score))
+            except Exception as e:
+                logger.error(e)
+
 
 class AdminView(BaseView):
     """管理视图"""
@@ -428,13 +475,14 @@ class AdminView(BaseView):
             logger.error(e)
 
 
-def get_obj(choice):
-    """根据用户选择返回相应的类"""
-
-    route = {
-        "1": sm.Student,
-        "2": sm.Teacher,
-        "3": sm.School
+def view_factry(input_num):
+    factry_dict = {
+        "1": StudentView,
+        "2": TeacherView,
+        "3": AdminView
     }
+    return factry_dict.get(input_num)()
 
-    return route.get(choice, False)
+
+def main():
+    input_num = input("")
