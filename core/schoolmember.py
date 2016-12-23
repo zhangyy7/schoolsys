@@ -191,13 +191,18 @@ class Teacher(SchoolMember):
         else:
             raise TypeError('只能绑定班级实例')
 
-    def add_students(self, students):
+    def add_students(self, students, classes_obj):
         """把学生加入自己的班级，学生报名的语言必须与自己的班级一致"""
         # print(self.classes)
         for student in students:
             if student.course == self.course:
-                self.classes.add_student(student, self)
-                student.classes = self.classes
+                if classes_obj in self.classes:
+                    classes_obj.add_student(student, self)
+                    student.classes = self.classes
+                else:
+                    raise PermissionError("您无权管理此班级")
+            else:
+                raise PermissionError("您无权管理此学员")
 
     def remove_students(self, students):
         """移除自己班级里的学员"""

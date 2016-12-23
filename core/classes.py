@@ -3,7 +3,8 @@
 import logging.config
 from core import schoolmember as csm
 from settings import CLASSES_MAX_STUDENTS as cms
-from settings import LOGGING_DIC
+from settings import LOGGING_DIC, DATABASE
+from util import pickle_to_file, upickle_from_file
 
 
 logging.config.dictConfig(LOGGING_DIC)
@@ -32,8 +33,13 @@ class Classes(object):
         self.__teacher = 0
         self.__students = []
         self.__max_students = cms
+        self.mypath = DATABASE["engineer"]["file"]["classes"]
         self.num = Classes.classes_num + 1
         Classes.classes_num += 1
+        classes_dict = upickle_from_file(self.mypath)
+        classes_dict[str(self.num)] = self
+        pickle_to_file(self.mypath, classes_dict)
+
 
 # 已下property装饰的函数都是访问或设置构造方法中的私有变量的唯一接口
     @property
