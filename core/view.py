@@ -71,7 +71,6 @@ class BaseView(object):
 
         classes_info_list = []
         for index, cla_num in enumerate(classes_dict, 1):
-            print(course_obj.name, classes_dict[cla_num].course.name)
             if course_obj.name == classes_dict[cla_num].course.name:
                 single_classes_tuple = (
                     "{num}.课程编号：{cla_num}".format(
@@ -131,6 +130,7 @@ class BaseView(object):
             raise ValueError('account_type not exists')
         obj_dict = upickle_from_file(obj_path)
         if not obj_dict:
+            self.try_count += 1
             raise ValueError('accout not exists')
         for obj_num, obj in obj_dict.items():
             if obj.name == name:
@@ -157,7 +157,7 @@ class StudentView(BaseView):
             "4": exit
         }
         while True:
-            act_num = input("1.注册 2.交学费 3.选班级 4.退出程序，其他任意键退出学生视图").strip()
+            act_num = input("1.注册 2.交学费 3.选班级 4.退出程序，其他任意键退出学生视图\n>>>").strip()
             act_func = func_route.get(act_num, 0)
             if not act_func:
                 break
@@ -167,36 +167,46 @@ class StudentView(BaseView):
         """学生注册学校账号"""
         if self.stu:
             return self.stu
-        stu_dict = upickle_from_file(self.stu_path)
+        stu_dict = upickle_from_file(self.student_path)
         stu_name = input("请输入您的姓名：".capitalize()).strip()
         stu_age = input("请输入您的年龄：").strip()
         stu_sex = input("请输入您的性别：").strip()
         self.stu = sm.Student(stu_name, stu_age, stu_sex)
-        stu_dict[self.stu.stu_no] = self.stu
-        pickle_to_file(self.stu_path, stu_dict)
+        stu_dict[str(self.stu.stu_no)] = self.stu
+        pickle_to_file(self.student_path, stu_dict)
         logger.debug("new student [{}] is registing".format(stu_name))
         return self.stu
 
     def login(self):
         logger.debug('a student start login')
-        if self.stu == 0:
+        if not self.stu:
             while self.try_count < 3:
                 stu_name = input("请输入姓名：".strip())
                 try:
                     self.stu = super(StudentView, self).login("1", stu_name)
                     logger.debug('success login')
-                    break
+                    print("登录成功！")
+                    return True
                 except ValueError as e:
                     logger.error(e)
+            else:
+                print("次数用尽！")
+                return False
+        else:
+            return True
 
     def register_or_login(self):
+        if self.stu:
+            return True
         """封装register和login两个方法"""
         act = {"1": self.login, "2": self.register}
-        act_num = input("1.登录已有账号\n2.注册新账号")
-        get_act = act.get(act_num, 0)
-        if get_act == 0:
-            raise ValueError('action is not exist!')
-        get_act()
+        get_act = 0
+        while not get_act:
+            act_num = input("1.登录已有账号\n2.注册新账号\n>>>")
+            get_act = act.get(act_num, 0)
+            if get_act == 0:
+                print("没有这个选项！")
+        return get_act()
 
     @auth(register_or_login)
     def enroll(self):
@@ -245,31 +255,38 @@ class StudentView(BaseView):
             except AssertionError as e:
                 logger.error(e)
 
-    @auth(login)
+    @auth(register_or_login)
     def pay_tuition(self):
         """交学费接口"""
         logger.debug('{} is starting pay tuition'.format(self.stu.name))
+        if not any((self.stu.course, self.stu.school)):  # 课程或学校有任何一个属性为假
+            print("请先注册基本信息")
+            return self.enroll()
+        if self.stu.ispaied:
+            print("您已经交过学费了，有钱也不能当冤大头啊！")
+            return
         issuccess = 0
         while not issuccess:
             tuition = input('您报名的课程学费为{}，请输入金额进行缴费：'.format(
                 self.stu.course.price))
             try:
                 issuccess = self.stu.pay_tuition(tuition)
-                stu_dict = upickle_from_file(self.stu_path)
-                stu_dict[self.stu.num] = self.stu
-                pickle_to_file(self.stu_path, stu_dict)
+                stu_dict = upickle_from_file(self.student_path)
+                stu_dict[str(self.stu.stu_no)] = self.stu
+                pickle_to_file(self.student_path, stu_dict)
                 logger.debug('the student {} finished pay'.format(
                     self.stu.name))
+                print("交费成功，可以选班级开始学习了！")
             except ValueError as e:
                 print('请输入正确的金额！')
                 logger.error(e)
 
-    @auth(login)
+    @auth(register_or_login)
     def choice_classes(self):
         """选班级"""
         logger.debug('the student {} is starting choice classes'.format(
             self.stu.name))
-        classes_info, classes_dict = self._query_classes()
+        classes_info, classes_dict = self._query_classes(self.stu.course)
 
         issuccess = 0
         while not issuccess:
@@ -278,17 +295,23 @@ class StudentView(BaseView):
                 choice_cla_num = input(
                     '班级信息如下：\n{}\n请选择>>>'.format(classes_info))
                 myclasses = classes_dict.get(choice_cla_num, 0)
-            choice_cla_info = "您选择了班级{name}".format(myclasses.name)
+            choice_cla_info = "您选择了班级{}".format(myclasses.name)
             print(choice_cla_info)
             try:
-                self.classes = myclasses
+                self.stu.classes = myclasses
                 issuccess = 1
                 logger.debug('student {} finished choice classes[{}]'.format(
                     self.stu.name, self.stu.classes.name))
+                student_ditc = upickle_from_file(self.student_path)
+                student_ditc[str(self.stu.stu_no)] = self.stu
+                pickle_to_file(self.student_path, student_ditc)
             except AssertionError as e:
                 logger.error(e)
             except ValueError as e:
                 logger.error(e)
+            except PermissionError as e:
+                print(e)
+                return False
 
 
 class TeacherView(BaseView):
@@ -301,9 +324,14 @@ class TeacherView(BaseView):
 
     def route(self):
         func_route = {"1": self.teaching,
-                      "2": self.modify_student_score, "3": exit}
+                      "2": self.modify_student_score,
+                      "3": self.bind_classes,
+                      "4": self.add_student_classes,
+                      "5": exit}
         while True:
-            act_num = input("1.上课 2.修改学生成绩 3.退出程序， 其他任意键退出讲师视图\n>>>").strip()
+            act_num = input(
+                "1.上课 2.修改学生成绩 3.绑定班级 4.添加学生入班 5.退出程序，其他任意键退出讲师视图\n>>>"
+            ).strip()
             act_func = func_route.get(act_num, 0)
             if not act_func:
                 break
@@ -321,18 +349,20 @@ class TeacherView(BaseView):
                                              self).login("2", name)
                         logger.debug('teacher[{}] login success'.format(name))
                         print("登陆成功！")
-                        break
+                        return True
                     except ValueError as e:
                         logger.error(e)
                         self.try_count += 1
                         print("登陆失败请重试！")
                 else:
-                    raise ValueError('too many try!')
+                    print('too many try!')
+                    return False
             except ValueError as e:
                 exit(e)
         else:
-            return
+            return True
 
+    @auth(login)
     def bind_classes(self):
         """绑定班级"""
         classes_info, classes_dict = self._query_classes(self.teacher.course)
@@ -371,15 +401,61 @@ class TeacherView(BaseView):
     @auth(login)
     def add_student_classes(self):
         """添加学生到班级"""
+        print("开始添加学生入班级".center(30, "*"))
+        print("第一步：选择学生".ljust(10, ">"))
         student_info, student_dict = self._query_student(self.teacher.course)
         if not student_info:
             raise ValueError("学生不存在！")
-        current_student = 0
-        while not current_student:
-            current_student_num = input("以下是选了您课程的学生信息：\n{}\n请选择>>>")
+        current_student_list = []
+        while True:
+            current_student_num = input(
+                "以下是选了您课程的学生信息：\n{}\n请选择>>>".format(student_info))
             current_student = student_dict.get(current_student_num, 0)
+            if current_student:
+                if current_student not in current_student_list:
+                    current_student_list.append(current_student)
+                else:
+                    print("该学员您已经选中了！")
+                    continue
+            else:
+                print("输入有误，请重试！")
+                continue
+            is_continue = input("1.继续添加  按其他任意键添加完毕").strip()
+            if is_continue != "1":
+                break
+        print("学生选择完毕".rjust(10, "<"))
 
+        print("第二步：选择班级".ljust(10, ">"))
         my_classes_list = self.teacher.classes
+        my_classes_info_list = []
+        for index, myclasses in enumerate(my_classes_list, 1):
+            single_mycla_info = "{}.班级名称：{}  已收学员数量：{}  最大学员数量{}".format(
+                index, myclasses.name,
+                len(myclasses.students), myclasses.max_students
+            )
+            my_classes_info_list.append(single_mycla_info)
+        myclasses_info = '\n'.join(my_classes_info_list)
+
+        current_classes = 0
+        while not current_classes:
+            current_classes_num = input(
+                "您管理的班级信息如下：\n{}\n请选择把学生加入到哪个班级>>>".format(myclasses_info)
+            ).strip()
+            try:
+                current_classes = my_classes_list[int(current_classes_num) - 1]
+            except IndexError as e:
+                logger.debug(e)
+                print("输入有误，请重试！")
+            except ValueError as e:
+                logger.debug(e)
+                print("输入有误，请重试！")
+        print("班级选择完毕".rjust(10, "<"))
+        try:
+            self.teacher.add_students(current_student_list, current_classes)
+        except PermissionError as e:
+            print(e)
+            logger.debug(e)
+        print("已完成本次操作".center(30, "*"))
 
     @auth(login)
     def modify_student_score(self):
@@ -388,11 +464,12 @@ class TeacherView(BaseView):
         for classes in self.teacher.classes:
             for student in classes.students:
                 single_student_info = '学生编号：{num}\t学生姓名：{sname}\t班级名称：{cname}'.format(
-                    num=student.num, sname=student.name, cname=classes.name)
+                    num=student.stu_no, sname=student.name, cname=classes.name)
                 info_list.append(single_student_info)
         student_info = '\n'.join(info_list)
         if not student_info:
-            raise ValueError("您管理的班级还没有学员！")
+            print("您管理的班级还没有学员！")
+            return
 
         current_student = 0
         while not current_student:
@@ -404,8 +481,9 @@ class TeacherView(BaseView):
         issuccess = 0
         while not issuccess:
             try:
-                new_score = input("学生{}当前成绩是{}\n请输入新成绩>>>".format(current_student.name,
-                                                                  current_student.score))
+                new_score = input("学生{}当前成绩是{}\n请输入新成绩>>>".format(
+                    current_student.name,
+                    current_student.score))
                 issuccess = self.teacher.modify_student_score(current_student,
                                                               int(new_score))
                 print("您已成功将学生{}的成绩修改为{}".format(current_student.name,
@@ -436,23 +514,30 @@ class AdminView(BaseView):
                 "1.创建学校 2.创建课程 3.创建班级 4.创建讲师 5.退出程序，其他任意键退出管理视图\n>>>").strip()
             act_func = func_route.get(act_num, 0)
             if not act_func:
+                self.school = 0
                 break
             act_func()
 
     def login(self):
         if not self.school:
             logger.debug("admin begin login")
-            print("请先登录！")
             while self.try_count < 3:
+                print("请先登录！")
                 school_name = input("请输入学校名称：\n>>>").strip()
                 try:
-                    self.school = super(AdminView, self).login('3',
-                                                               school_name)
+                    self.school = super(AdminView, self).login(
+                        '3', school_name)
                     logger.debug('login success')
-                    break
+                    print("登录成功！")
+                    return True
                 except ValueError as e:
+                    print("没有这个学校")
                     logger.error(e)
-                    self.try_count += 1
+            else:
+                print("登录失败，已退出管理系统，请联系管理员")
+                return False
+        else:
+            return True
 
     def create_school(self):
         """创建学校"""
@@ -460,7 +545,7 @@ class AdminView(BaseView):
         school_name = input("请输入学校名称：\n>>>")
         school_location = input("请输入学校位置：\n>>>")
         school_obj = sm.School(school_name, school_location)
-        _, school_dict = self._query_school()
+        school_dict = upickle_from_file(self.school_path)
         school_dict[str(school_obj.num)] = school_obj
         pickle_to_file(self.school_path, school_dict)
         logger.debug('school {} created'.format(school_obj.name))
@@ -486,7 +571,7 @@ class AdminView(BaseView):
             teacher_course_num = input("请从以下课程列表里选择讲师的课程：\n{}\n>>>".format(
                 course_info))
             teacher_course = course_dict.get(teacher_course_num, 0)
-        teacher_salary = input("请输入讲师工资：\\n>>>")
+        teacher_salary = input("请输入讲师工资：\n>>>")
         teacher_obj = school_obj.create_teacher(teacher_name, teacher_age,
                                                 teacher_sex, teacher_course,
                                                 teacher_salary)
@@ -507,7 +592,7 @@ class AdminView(BaseView):
             school_num = input(
                 "学校信息如下：\n{}\n请选择为哪所学校创建课程>>>".format(school_info)).strip()
             school_obj = school_dict.get(school_num, 0)
-        _, course_dict = self._query_course(school_obj)
+        # _, course_dict = self._query_course(school_obj)
         course_obj = 0
         while not course_obj:
             try:

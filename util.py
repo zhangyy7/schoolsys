@@ -3,6 +3,7 @@
 import os
 import _pickle
 import functools
+import index
 
 
 def pickle_to_file(filepath, obj):
@@ -29,7 +30,9 @@ def auth(before_fn=None, after_fn=None):
         @functools.wraps(fn_or_cls)
         def wrapper(self, *args, **kwargs):
             if before_fn:
-                before_fn(self)
+                ret = before_fn(self)
+                if not ret:
+                    return index.main()
             obj = fn_or_cls(self, *args, **kwargs)
             if after_fn:
                 after_fn(self)

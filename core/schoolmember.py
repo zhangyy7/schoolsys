@@ -36,11 +36,16 @@ class School(object):
         """创建班级"""
         clas_obj = classes.Classes(self)
         clas_obj.course = course_obj
+        teacher_obj.bind_classes(clas_obj)
         clas_obj.teacher = teacher_obj
         cla_path = DATABASE["engineer"]["file"]["classes"]
+        teacher_path = DATABASE["engineer"]["file"]["teacher"]
         cla_dict = util.upickle_from_file(cla_path)
         cla_dict[str(clas_obj.num)] = clas_obj
+        teacher_dict = util.upickle_from_file(teacher_path)
+        teacher_dict[teacher_obj.num] = teacher_obj
         util.pickle_to_file(cla_path, cla_dict)
+        util.pickle_to_file(teacher_path, teacher_dict)
         return clas_obj
 
     def create_course(self, course_name, cycle, price):
@@ -184,10 +189,13 @@ class Teacher(SchoolMember):
     def bind_classes(self, classes_obj):
         """绑定班级"""
         if isinstance(classes_obj, classes.Classes):
-            if self.course == classes_obj.course and not classes_obj.teacher:
-                self.classes.append(classes_obj)
+            if classes_obj not in self.classes:
+                if classes_obj.course == self.course:
+                    self.classes.append(classes_obj)
+                else:
+                    raise ValueError("课程不符")
             else:
-                raise KeyError('该班级已经有老师了')
+                raise ValueError('您已经是该班级的老师了')
         else:
             raise TypeError('只能绑定班级实例')
 
@@ -198,7 +206,15 @@ class Teacher(SchoolMember):
             if student.course == self.course:
                 if classes_obj in self.classes:
                     classes_obj.add_student(student, self)
-                    student.classes = self.classes
+                    student.classes = classes_obj
+                    stu_path = DATABASE["engineer"]["file"]["student"]
+                    cla_path = DATABASE["engineer"]["file"]["classes"]
+                    student_dict = util.upickle_from_file(stu_path)
+                    cla_dict = util.upickle_from_file(cla_path)
+                    student_dict[str(student.stu_no)] = student
+                    cla_dict[classes_obj.num] = classes_obj
+                    util.pickle_to_file(stu_path, student_dict)
+                    util.pickle_to_file(cla_path, cla_dict)
                 else:
                     raise PermissionError("您无权管理此班级")
             else:
@@ -251,6 +267,7 @@ class Student(SchoolMember):
         self.__score = 0
         Student.__stu_no += 1
         self.__num = Student.__stu_no
+        self.ischoice = 0
 
     @property
     def stu_no(self):
@@ -319,7 +336,7 @@ class Student(SchoolMember):
         if self.ispaied:
             self.__classes = classes_obj
         else:
-            raise ValueError('no paied the course')
+            raise PermissionError('no paied the course')
 
     @classes.deleter
     def classes(self):
